@@ -45,7 +45,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"],
 }
 [data-testid="stHeader"] { background:transparent !important; }
 [data-testid="stMainBlockContainer"] { max-width:1240px; padding-top:2.2rem; }
-label, p, span, [data-testid="stWidgetLabel"], [data-testid="stMarkdownContainer"] p {
+label, p, span:not([data-testid="stIconMaterial"]), [data-testid="stWidgetLabel"], [data-testid="stMarkdownContainer"] p {
   color:var(--ink) !important; font-family:var(--body) !important;
   font-weight:600 !important; letter-spacing:.02em;
 }
@@ -80,49 +80,65 @@ hr { border:none !important; border-top:1px solid var(--line) !important; margin
 h2, h3, [data-testid="stSubheader"] { font-family:var(--display) !important;
   text-transform:uppercase; letter-spacing:.05em; font-weight:800 !important; color:var(--ink) !important; }
 
-/* ---------- INPUTS ---------- */
-div[data-baseweb="input"] > div, div[data-baseweb="select"] > div,
-div[data-baseweb="base-input"] {
-  background:#e6e6e6 !important; border:1.5px solid #8f8f8f !important;
-  border-radius:12px !important; font-weight:600 !important; color:var(--ink) !important;
-  box-shadow:inset 0 1px 2px rgba(0,0,0,.08);
+/* ---------- INPUTS (works with Streamlit's current react-aria markup) ---------- */
+[data-testid="stNumberInputContainer"],
+[data-testid="stTextInputRootElement"],
+[data-testid="stTextAreaRootElement"],
+[data-testid="stSelectbox"] [role="group"],
+[data-testid="stMultiSelect"] [role="group"] {
+  background:#e3e3e3 !important; border:1.5px solid #8f8f8f !important;
+  border-radius:12px !important; box-shadow:inset 0 1px 3px rgba(0,0,0,.10) !important;
   transition:border-color .15s, box-shadow .15s, background .15s; }
-div[data-baseweb="input"]:hover > div, div[data-baseweb="select"]:hover > div { border-color:#4a4a4a !important; }
-div[data-baseweb="input"]:focus-within > div, div[data-baseweb="select"]:focus-within > div {
-  background:#efefef !important; border-color:var(--red) !important;
+[data-testid="stNumberInputContainer"]:hover, [data-testid="stTextInputRootElement"]:hover,
+[data-testid="stSelectbox"] [role="group"]:hover { border-color:#4a4a4a !important; }
+[data-testid="stNumberInputContainer"]:focus-within, [data-testid="stTextInputRootElement"]:focus-within,
+[data-testid="stSelectbox"] [role="group"]:focus-within {
+  background:#ececec !important; border-color:var(--red) !important;
   box-shadow:0 0 0 3px rgba(204,17,17,.18) !important; }
-input::placeholder { color:#6f6f6f !important; opacity:1 !important; font-weight:500 !important; }
-[data-testid="stNumberInput"] button { background:#d2d2d2 !important; color:var(--ink) !important; }
-[data-testid="stNumberInput"] button:hover { background:var(--ink) !important; color:#fff !important; }
-div[data-baseweb="popover"] ul[role="listbox"] { background:#f1f1f1 !important; border-radius:12px !important; }
-div[data-baseweb="popover"] li { color:var(--ink) !important; font-weight:600 !important; }
-div[data-baseweb="popover"] li:hover, div[data-baseweb="popover"] li[aria-selected="true"] {
-  background:#e0e0e0 !important; }
-input { color:var(--ink) !important; font-family:var(--body) !important; }
+[data-testid="stNumberInputField"], [data-testid="stSelectbox"] input, [data-testid="stTextInputRootElement"] input,
+[data-testid="stTextAreaRootElement"] textarea {
+  background:transparent !important; color:var(--ink) !important; font-family:var(--body) !important;
+  font-weight:600 !important; font-size:.95rem !important; }
+input::placeholder, textarea::placeholder { color:#6f6f6f !important; opacity:1 !important; font-weight:500 !important; }
+[data-testid="stNumberInputStepUp"], [data-testid="stNumberInputStepDown"] {
+  background:#c9c9c9 !important; color:var(--ink) !important; }
+[data-testid="stNumberInputStepUp"]:hover:not(:disabled), [data-testid="stNumberInputStepDown"]:hover:not(:disabled) {
+  background:var(--ink) !important; color:#fff !important; }
+[data-testid="stSelectbox"] button svg { color:var(--ink) !important; }
+[role="listbox"] { background:#f1f1f1 !important; border-radius:12px !important; }
+[role="option"] { color:var(--ink) !important; font-weight:600 !important; }
+[role="option"]:hover, [role="option"][data-focused="true"], [role="option"][aria-selected="true"] { background:#dcdcdc !important; }
 [data-testid="stCheckbox"] label span { font-weight:600 !important; text-transform:none; letter-spacing:.02em; }
-[data-testid="stTooltipIcon"] svg { fill:var(--ink) !important; opacity:.7 !important; }
-div[data-baseweb="tooltip"] { background:var(--ink) !important; border:1px solid var(--red) !important;
+[data-testid="stTooltipIcon"] svg { fill:none !important; stroke:var(--ink) !important; opacity:.7; }
+[data-testid="stTooltipIcon"] button, [data-testid="stTooltipHoverTarget"] { background:transparent !important; }
+div[data-baseweb="tooltip"], div[data-baseweb="popover"] [data-testid="stTooltipContent"] {
+  background:var(--ink) !important; border:1px solid var(--red) !important;
   border-radius:10px !important; box-shadow:0 8px 24px rgba(0,0,0,.3) !important; }
-div[data-baseweb="tooltip"] * { color:#fff !important; font-weight:500 !important; }
+div[data-baseweb="tooltip"] *, [data-testid="stTooltipContent"] * { color:#fff !important; font-weight:500 !important; }
 
 /* ---------- ALERTS ---------- */
-[data-testid="stAlert"] { background:#fff !important; border:none !important;
+[data-testid="stAlert"] { background:transparent !important; border:none !important; box-shadow:none !important; }
+[data-testid="stAlertContainer"] { background:#fff !important; border:none !important;
   border-left:5px solid var(--red) !important; border-radius:14px !important;
-  box-shadow:0 2px 10px rgba(0,0,0,.06); }
-[data-testid="stAlert"] p { font-weight:600 !important; font-size:.9rem !important; }
+  box-shadow:0 2px 10px rgba(0,0,0,.08) !important; }
+[data-testid="stAlertContainer"] p { font-weight:600 !important; font-size:.9rem !important; color:var(--ink) !important; }
 
-/* ---------- TABS + ARCHED PANEL (catalog signature) ---------- */
-.stTabs [data-baseweb="tab-list"] { gap:6px; border-bottom:none !important; padding-bottom:0; }
-.stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"] { display:none !important; }
-.stTabs [data-baseweb="tab"] { background:#efefef !important; border:none !important;
-  border-radius:16px 16px 0 0 !important; padding:12px 24px !important; height:auto !important; }
-.stTabs [data-baseweb="tab"] p { color:var(--ink) !important; font-weight:700 !important;
-  font-size:.82rem !important; text-transform:uppercase; letter-spacing:.08em; }
-.stTabs [aria-selected="true"] { background:var(--panel) !important; }
-.stTabs [aria-selected="true"] p { color:var(--red) !important; font-weight:800 !important; }
-.stTabs [data-baseweb="tab-panel"] { background:var(--panel); padding:30px 32px 32px 32px !important;
-  border-radius:0 120px 28px 28px; margin-top:0; }
-@media (max-width:700px){ .stTabs [data-baseweb="tab-panel"]{ border-radius:0 40px 20px 20px; padding:20px !important; } }
+/* ---------- TABS: folder tabs that join the arched grey panel ---------- */
+[role="tablist"] { gap:6px !important; border-bottom:none !important; box-shadow:none !important; padding:0 !important; }
+[role="tablist"]::before, [role="tablist"]::after { display:none !important; }
+.react-aria-SelectionIndicator { display:none !important; }
+[data-testid="stTab"] { background:#ececec !important; border:none !important; border-bottom:none !important;
+  border-radius:16px 16px 0 0 !important; padding:12px 26px !important; height:auto !important;
+  transition:background .15s; }
+[data-testid="stTab"]:hover { background:#e0e0e0 !important; }
+[data-testid="stTab"] p { color:var(--ink) !important; font-weight:700 !important; font-size:.78rem !important;
+  line-height:1.2 !important; text-transform:uppercase; letter-spacing:.09em; white-space:nowrap; }
+[data-testid="stTab"][aria-selected="true"] { background:var(--panel) !important; }
+[data-testid="stTab"][aria-selected="true"] p { color:var(--red) !important; font-weight:800 !important; }
+[data-testid="stTabPanel"] { background:var(--panel) !important; padding:30px 32px 32px 32px !important;
+  border-radius:0 110px 28px 28px; margin-top:0 !important; }
+@media (max-width:700px){ [data-testid="stTabPanel"]{ border-radius:0 40px 20px 20px; padding:20px !important; }
+  [data-testid="stTab"]{ padding:10px 14px !important; } [data-testid="stTab"] p{ font-size:.68rem !important; } }
 
 /* ---------- FILE UPLOADER ---------- */
 [data-testid="stFileUploader"] section { background:#fff !important; border:2px dashed #b9b9b9 !important;
@@ -137,12 +153,15 @@ div[data-baseweb="tooltip"] * { color:#fff !important; font-weight:500 !importan
 
 /* ---------- METRICS ---------- */
 [data-testid="stMetric"] { background:#fff !important; border:1px solid var(--line) !important;
-  border-top:4px solid var(--ink) !important; border-radius:16px !important;
-  padding:14px 18px !important; box-shadow:0 4px 14px rgba(0,0,0,.05) !important; }
-[data-testid="stMetricValue"] { font-family:var(--display) !important; font-size:1.55rem !important;
-  font-weight:800 !important; color:var(--ink) !important; }
-[data-testid="stMetricLabel"] p { color:var(--red) !important; font-size:.72rem !important;
-  font-weight:800 !important; text-transform:uppercase; letter-spacing:.1em; }
+  border-radius:16px !important; padding:14px 18px !important; box-shadow:0 4px 14px rgba(0,0,0,.06) !important; }
+[data-testid="stMetric"] { min-height:96px; }
+[data-testid="stMetricValue"], [data-testid="stMetricValue"] > div { font-family:var(--display) !important;
+  font-size:1.35rem !important; font-weight:800 !important; color:var(--ink) !important;
+  white-space:normal !important; overflow:visible !important; text-overflow:clip !important; }
+[data-testid="stMetricLabel"], [data-testid="stMetricLabel"] > div, [data-testid="stMetricLabel"] p {
+  white-space:normal !important; overflow:visible !important; text-overflow:clip !important; }
+[data-testid="stMetricLabel"] p { color:var(--red) !important; font-size:.68rem !important; line-height:1.3 !important;
+  font-weight:800 !important; text-transform:uppercase; letter-spacing:.07em; }
 
 /* ---------- COST + INFO CARDS ---------- */
 .cost-card { background:linear-gradient(135deg,#fff 0%,#fbeaea 100%); border:1px solid #f1c9c9;
@@ -161,20 +180,19 @@ div[data-baseweb="tooltip"] * { color:#fff !important; font-weight:500 !importan
 .tab-card { margin-top:24px; }
 
 /* ---------- TOTAL BANNER ---------- */
-.total-price-banner { background:var(--ink); padding:22px 30px 24px 30px; margin:18px 0 24px 0;
-  border-radius:0 90px 24px 24px; box-shadow:0 10px 28px rgba(0,0,0,.22); position:relative; }
-.total-price-banner::after { content:""; position:absolute; left:0; top:0; bottom:0; width:8px;
-  background:var(--red); border-radius:0 0 0 24px; }
+.total-price-banner { background:var(--panel); padding:22px 32px 24px 36px; margin:18px 0 24px 0;
+  border-radius:0 90px 24px 24px; box-shadow:0 6px 18px rgba(0,0,0,.10); position:relative; overflow:hidden; }
+.total-price-banner::after { content:""; position:absolute; left:0; top:0; bottom:0; width:8px; background:var(--red); }
 .total-price-banner .tp-label { display:block; color:var(--red) !important; font-weight:800;
-  letter-spacing:.2em; text-transform:uppercase; font-size:.75rem; margin-bottom:6px; }
-.total-price-banner .tp-value { font-family:var(--display); color:#fff !important; margin:0;
+  letter-spacing:.2em; text-transform:uppercase; font-size:.74rem; margin-bottom:6px; }
+.total-price-banner .tp-value { font-family:var(--display); color:var(--ink) !important; margin:0;
   font-size:clamp(1.9rem,4vw,2.9rem); font-weight:800; letter-spacing:.01em; line-height:1.05; }
 
 /* ---------- BUTTONS ---------- */
-.stButton > button { border-radius:999px !important; padding:12px 28px !important;
+.stButton > button { border-radius:999px !important; padding:11px 20px !important; white-space:nowrap !important;
   font-family:var(--body) !important; font-weight:800 !important; text-transform:uppercase !important;
-  letter-spacing:.09em !important; font-size:.8rem !important; transition:all .15s ease !important; }
-.stButton > button p { font-weight:800 !important; letter-spacing:.09em !important; }
+  letter-spacing:.06em !important; font-size:.74rem !important; transition:all .15s ease !important; }
+.stButton > button p { font-weight:800 !important; letter-spacing:.06em !important; white-space:nowrap !important; overflow:visible !important; text-overflow:clip !important; }
 .stButton > button[kind="secondary"], [data-testid="stBaseButton-secondary"] {
   background:#fff !important; border:1.5px solid var(--ink) !important; color:var(--ink) !important;
   box-shadow:none !important; }
@@ -382,7 +400,7 @@ st.markdown(
 # STEP 1: QUOTE INPUTS & LIVE INTERACTIVE CAD VIEWER
 # ------------------------------------------------------
 if st.session_state.step == 1:
-  top_row1, top_row2, top_row3 = st.columns([3, 1.2, 1])
+  top_row1, top_row2, top_row3 = st.columns([2.2, 1.5, 1.2])
   with top_row1:
     st.markdown(
         '<div class="catalog-title"><span class="catalog-star">✦</span>STEP 1:'
@@ -442,7 +460,7 @@ if st.session_state.step == 1:
 
   # 2. DEFAULT TO MANUAL DATA ENTRY TAB FIRST
   tab_manual, tab_upload = st.tabs(
-      ["✏️ Manual Data Entry", "⚡ Upload File (.dxf / .svg / .tap)"]
+      ["Manual Entry", "Upload File (DXF · SVG · TAP)"]
   )
 
   # --- TAB 1: MANUAL DATA ENTRY ---
@@ -723,7 +741,7 @@ if st.session_state.step == 1:
 # STEP 2: ESTIMATE SUMMARY & COST PIE CHART
 # ------------------------------------------------------
 elif st.session_state.step == 2:
-  nav_col1, nav_col2 = st.columns([4, 1])
+  nav_col1, nav_col2 = st.columns([3, 1.4])
   with nav_col1:
     if st.button("← Revise Quote Inputs"):
       st.session_state.step = 1
@@ -897,7 +915,7 @@ elif st.session_state.step == 2:
           f"""
           <div class="total-price-banner">
               <span class="tp-label">Total Price &nbsp;·&nbsp; {qty} pc{"s" if qty > 1 else ""}</span>
-              <h2 class="tp-value">${total_price:.2f}</h2>
+              <div class="tp-value">${total_price:.2f}</div>
           </div>
       """,
           unsafe_allow_html=True,
@@ -926,15 +944,17 @@ elif st.session_state.step == 2:
           wedges, texts, autotexts = ax_pie.pie(
               filtered_values,
               labels=filtered_labels,
-              autopct="%1.0f%%",
+              autopct=lambda pct: f"{pct:.0f}%" if pct >= 5 else "",
+              pctdistance=0.79,
               startangle=140,
               colors=colors[: len(filtered_values)],
               textprops=dict(color="#1a1a1a", fontsize=8, weight="bold"),
               wedgeprops=dict(width=0.42, edgecolor="#ffffff", linewidth=2),
           )
 
-          for autotext in autotexts:
+          for autotext, col in zip(autotexts, colors[: len(filtered_values)]):
             autotext.set_fontsize(7.5)
+            autotext.set_color("#1a1a1a" if col == "#a8a8a8" else "#ffffff")
 
           ax_pie.axis("equal")
           st.pyplot(fig_pie, clear_figure=True)
@@ -1012,6 +1032,9 @@ elif st.session_state.step == 2:
           )
           ax.add_patch(rect_part)
 
+    ax.relim()
+    ax.autoscale_view()
+    ax.margins(0.04)
     ax.set_aspect("equal", adjustable="datalim")
     ax.axis("off")
     st.pyplot(fig, clear_figure=True)
