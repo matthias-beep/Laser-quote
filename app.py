@@ -1,3 +1,4 @@
+import glob
 import io
 import math
 import os
@@ -223,7 +224,7 @@ st.markdown(
         box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
     }
 
-    /* 11. WARNER STEEL CRIMSON BUTTONS & TABS */
+    /* 11. WARNER STEEL CRIMSON BUTTONS & CLEAN TABS */
     .stButton > button {
         background-color: #cc1111 !important;
         color: #ffffff !important;
@@ -239,22 +240,31 @@ st.markdown(
         background-color: #aa0e0e !important;
     }
 
-    /* Styled Tab Navigation */
+    /* CLEAN & HIGH-CONTRAST TAB NAVIGATION */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
+        border-bottom: 2px solid #cc1111 !important;
     }
     .stTabs [data-baseweb="tab"] {
         background-color: #ffffff !important;
         border: 1.5px solid #cccccc !important;
+        border-bottom: none !important;
         border-radius: 8px 8px 0 0 !important;
         padding: 10px 20px !important;
         font-weight: 800 !important;
         color: #1a1a1a !important;
     }
+    .stTabs [data-baseweb="tab"] p, .stTabs [data-baseweb="tab"] span {
+        color: #1a1a1a !important;
+        font-weight: 800 !important;
+    }
     .stTabs [aria-selected="true"] {
-        background-color: #cc1111 !important;
-        color: #ffffff !important;
+        background-color: #1a1a1a !important;
         border-color: #cc1111 !important;
+    }
+    .stTabs [aria-selected="true"] p, .stTabs [aria-selected="true"] span {
+        color: #ffffff !important;
+        font-weight: 900 !important;
     }
 
     hr {
@@ -308,21 +318,31 @@ except Exception as e:
   st.stop()
 
 # ------------------------------------------------------
-# HEADER & LOGO (CASE-INSENSITIVE FILE CHECK)
+# HEADER & LOGO (ROBUST FILE MATCH & INLINE SVG FALLBACK)
 # ------------------------------------------------------
 header_col1, header_col2 = st.columns([1, 5])
 
+def get_logo_file():
+  for f in glob.glob("*"):
+    if f.lower() in ("logo.png", "logo.jpg", "logo.jpeg", "warner_steel_1280x1280.png"):
+      return f
+  return None
+
+logo_path = get_logo_file()
+
 with header_col1:
-  if os.path.exists("Logo.png"):
-    st.image("Logo.png", width=140)
-  elif os.path.exists("logo.png"):
-    st.image("logo.png", width=140)
-  elif os.path.exists("warner_steel_1280x1280.png"):
-    st.image("warner_steel_1280x1280.png", width=140)
+  if logo_path:
+    st.image(logo_path, width=140)
   else:
-    st.image(
-        "https://via.placeholder.com/150x80/cc1111/ffffff?text=WARNER+STEEL",
-        width=140,
+    # High-contrast inline SVG logo fallback if image file is not found
+    st.markdown(
+        """
+        <div style="background-color: #1a1a1a; border-left: 5px solid #cc1111; padding: 12px; border-radius: 8px; text-align: center; width: 140px;">
+            <div style="color: #ffffff; font-weight: 900; font-size: 1.1rem; line-height: 1.1; letter-spacing: 1px;">WARNER</div>
+            <div style="color: #cc1111; font-weight: 900; font-size: 1.1rem; line-height: 1.1; letter-spacing: 1px;">STEEL</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 with header_col2:
@@ -389,7 +409,7 @@ if st.session_state.step == 1:
       reset_quote_data()
       st.rerun()
 
-  # 1. MATERIAL & THICKNESS INPUTS (STACKED VERTICALLY WITH PERSISTENCE)
+  # 1. MATERIAL & THICKNESS INPUTS
   mats_list = ["Select Material..."] + list(vlookup_data["Material"].dropna().unique())
   
   sel_mat_idx = (
@@ -745,7 +765,6 @@ elif st.session_state.step == 2:
 
   spacing_gap = 0.25
 
-  # Check if uploaded file is already a multi-part array (e.g. TAP or multi-part SVG)
   is_already_array = False
   if st.session_state.get("input_mode") == "upload" and st.session_state.get("parsed_layer_data") is not None:
     if "TAP Cut Toolpath" in st.session_state.parsed_layer_data.get("all_layers", []):
@@ -884,7 +903,7 @@ elif st.session_state.step == 2:
             unsafe_allow_html=True,
         )
 
-      # TOTAL PRICE BANNER (EXPLICIT WHITE TEXT INLINE OVERRIDE)
+      # TOTAL PRICE BANNER
       st.markdown(
           f"""
           <div class="total-price-banner">
