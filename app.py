@@ -27,11 +27,12 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Montserrat:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Montserrat:wght@400;500;600;700;800&family=Pacifico&display=swap');
 
 :root {
   --ink:#1a1a1a; --red:#cc1111; --red-dk:#a50d0d; --panel:#d9d9d9;
   --card:#ffffff; --brown:#5b4a38; --muted:#6b6b6b; --line:#e3e3e3;
+  --script:'Pacifico','Brush Script MT',cursive;
   --display:'Syne','Arial Black','Segoe UI',sans-serif;
   --body:'Montserrat','Segoe UI',Roboto,Arial,sans-serif;
 }
@@ -82,13 +83,22 @@ h2, h3, [data-testid="stSubheader"] { font-family:var(--display) !important;
 /* ---------- INPUTS ---------- */
 div[data-baseweb="input"] > div, div[data-baseweb="select"] > div,
 div[data-baseweb="base-input"] {
-  background:#fff !important; border:1.5px solid #cfcfcf !important;
+  background:#e6e6e6 !important; border:1.5px solid #8f8f8f !important;
   border-radius:12px !important; font-weight:600 !important; color:var(--ink) !important;
-  transition:border-color .15s, box-shadow .15s; }
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.08);
+  transition:border-color .15s, box-shadow .15s, background .15s; }
+div[data-baseweb="input"]:hover > div, div[data-baseweb="select"]:hover > div { border-color:#4a4a4a !important; }
 div[data-baseweb="input"]:focus-within > div, div[data-baseweb="select"]:focus-within > div {
-  border-color:var(--red) !important; box-shadow:0 0 0 3px rgba(204,17,17,.14) !important; }
+  background:#efefef !important; border-color:var(--red) !important;
+  box-shadow:0 0 0 3px rgba(204,17,17,.18) !important; }
+input::placeholder { color:#6f6f6f !important; opacity:1 !important; font-weight:500 !important; }
+[data-testid="stNumberInput"] button { background:#d2d2d2 !important; color:var(--ink) !important; }
+[data-testid="stNumberInput"] button:hover { background:var(--ink) !important; color:#fff !important; }
+div[data-baseweb="popover"] ul[role="listbox"] { background:#f1f1f1 !important; border-radius:12px !important; }
+div[data-baseweb="popover"] li { color:var(--ink) !important; font-weight:600 !important; }
+div[data-baseweb="popover"] li:hover, div[data-baseweb="popover"] li[aria-selected="true"] {
+  background:#e0e0e0 !important; }
 input { color:var(--ink) !important; font-family:var(--body) !important; }
-[data-testid="stNumberInput"] button { border-radius:10px !important; }
 [data-testid="stCheckbox"] label span { font-weight:600 !important; text-transform:none; letter-spacing:.02em; }
 [data-testid="stTooltipIcon"] svg { fill:var(--ink) !important; opacity:.7 !important; }
 div[data-baseweb="tooltip"] { background:var(--ink) !important; border:1px solid var(--red) !important;
@@ -179,13 +189,64 @@ div[data-baseweb="tooltip"] * { color:#fff !important; font-weight:500 !importan
 .stButton > button[kind="primary"]:hover, [data-testid="stBaseButton-primary"]:hover {
   background:var(--red-dk) !important; transform:translateY(-1px); }
 
+/* ---------- TOP BAR + HERO ACCENTS ---------- */
+.ws-topbar { display:flex; justify-content:space-between; align-items:center; gap:14px;
+  background:var(--ink); border-radius:999px; padding:9px 26px; margin-bottom:26px;
+  border-bottom:3px solid var(--red); }
+.ws-topbar .script { font-family:var(--script); color:#fff !important; font-size:1.05rem;
+  font-weight:400 !important; letter-spacing:.02em; }
+.ws-topbar .tag { color:#bdbdbd !important; font-size:.68rem; letter-spacing:.2em;
+  text-transform:uppercase; font-weight:600 !important; }
+@media (max-width:700px){ .ws-topbar .tag{ display:none; } }
+.ws-hero img { box-shadow:0 0 0 4px #fff, 0 0 0 7px var(--red), 0 14px 30px rgba(0,0,0,.28) !important;
+  margin-right:10px; }
+.ws-rule { height:4px; border-radius:4px; margin:2px 0 28px 0;
+  background:linear-gradient(90deg,var(--red) 0%,var(--ink) 55%,rgba(26,26,26,0) 100%); }
+
+/* ---------- STEP INDICATOR ---------- */
+.ws-steps { display:flex; align-items:center; gap:14px; margin:0 0 24px 0; flex-wrap:wrap; }
+.ws-step { display:flex; align-items:center; gap:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.1em; font-size:.74rem; color:var(--muted); }
+.ws-step b { width:36px; height:36px; border-radius:50%; background:#e2e2e2; color:#555;
+  display:grid; place-items:center; font-family:var(--display); font-size:.95rem; }
+.ws-step.on { color:var(--ink); }
+.ws-step.on b { background:var(--ink); color:#fff; box-shadow:0 0 0 3px #fff, 0 0 0 5px var(--red); }
+.ws-step.done { color:var(--ink); }
+.ws-step.done b { background:var(--red); color:#fff; }
+.ws-step-line { flex:0 0 72px; height:3px; border-radius:3px;
+  background:linear-gradient(90deg,var(--red),#cfcfcf); }
+
+/* ---------- MATERIAL PANEL (arched, like the catalog) ---------- */
+.st-key-mat_panel { background:var(--panel); border-radius:0 100px 26px 26px;
+  padding:24px 32px 18px 32px; margin:4px 0 26px 0; }
+.panel-label { color:var(--red) !important; font-weight:800; text-transform:uppercase;
+  letter-spacing:.14em; font-size:.72rem; margin-bottom:10px; }
+@media (max-width:700px){ .st-key-mat_panel{ border-radius:0 40px 20px 20px; padding:18px; } }
+
+/* ---------- POLISH ---------- */
+::selection { background:var(--red); color:#fff; }
+h3::after { content:""; display:block; width:54px; height:4px; background:var(--red);
+  border-radius:4px; margin-top:8px; }
+.info-card, .cost-card, [data-testid="stMetric"] { transition:transform .15s ease, box-shadow .15s ease; }
+.info-card:hover, .cost-card:hover, [data-testid="stMetric"]:hover { transform:translateY(-2px);
+  box-shadow:0 10px 22px rgba(0,0,0,.10) !important; }
+[data-testid="stImage"] img { border-radius:18px; background:#fff;
+  box-shadow:0 6px 20px rgba(0,0,0,.09); }
+[data-testid="stCheckbox"] { padding:2px 0; }
+
 /* ---------- FOOTER ---------- */
-.ws-footer { margin-top:44px; padding:22px 6px 6px 6px; border-top:3px solid var(--red);
-  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
-.ws-footer .welding { font-family:var(--display); font-weight:800; color:var(--red);
-  letter-spacing:.06em; text-transform:uppercase; font-size:.95rem; }
-.ws-footer .contact { color:var(--muted); font-size:.8rem; letter-spacing:.05em; font-weight:500; text-align:right; }
-.ws-footer .contact b { color:var(--ink); }
+.ws-footer { margin-top:52px; background:var(--ink); border-top:4px solid var(--red);
+  border-radius:90px 26px 0 0; padding:28px 40px 26px 40px; display:flex;
+  justify-content:space-between; align-items:center; flex-wrap:wrap; gap:18px; }
+.ws-footer * { color:#fff !important; }
+.ws-footer .brand { display:flex; align-items:center; gap:16px; }
+.ws-footer img { width:58px; height:58px; border-radius:50%; box-shadow:0 0 0 2px var(--red); }
+.ws-footer .script { font-family:var(--script); font-size:1.25rem; line-height:1.1; font-weight:400 !important; }
+.ws-footer .small { color:#a9a9a9 !important; font-size:.68rem; letter-spacing:.2em;
+  text-transform:uppercase; font-weight:600 !important; margin-top:4px; }
+.ws-footer .contact { font-size:.8rem; letter-spacing:.05em; font-weight:500 !important;
+  text-align:right; line-height:1.7; }
+.ws-footer .contact b { color:var(--red) !important; font-weight:800 !important; }
 </style>
 """,
     unsafe_allow_html=True,
@@ -258,12 +319,14 @@ _logo_uri = logo_data_uri()
 _logo_html = f'<img src="{_logo_uri}" alt="Warner Steel logo">' if _logo_uri else ""
 
 st.markdown(
+    '<div class="ws-topbar"><div class="script">Since 1995</div>'
+    '<div class="tag">Indianapolis, Indiana &nbsp;·&nbsp; Laser Cutting Quotes</div></div>'
     '<div class="ws-hero"><div>'
     "<h1>WARNER<br>STEEL</h1>"
     '<div class="sub">Laser Quoting</div>'
     '<div class="addr">2623 E. Raymond St · Indianapolis, IN 46203 · (317) 789-1733 ·'
     " sales@warnersteel.com</div>"
-    "</div>" + _logo_html + "</div>",
+    "</div>" + _logo_html + '</div><div class="ws-rule"></div>',
     unsafe_allow_html=True,
 )
 
@@ -303,6 +366,19 @@ if "cut_length" not in st.session_state:
   reset_quote_data()
 
 # ------------------------------------------------------
+# STEP INDICATOR
+# ------------------------------------------------------
+_s = st.session_state.step
+st.markdown(
+    '<div class="ws-steps">'
+    f'<div class="ws-step {"done" if _s > 1 else "on"}"><b>{"✓" if _s > 1 else "1"}</b>Quote Details</div>'
+    '<div class="ws-step-line"></div>'
+    f'<div class="ws-step {"on" if _s == 2 else ""}"><b>2</b>Estimate</div>'
+    "</div>",
+    unsafe_allow_html=True,
+)
+
+# ------------------------------------------------------
 # STEP 1: QUOTE INPUTS & LIVE INTERACTIVE CAD VIEWER
 # ------------------------------------------------------
 if st.session_state.step == 1:
@@ -323,46 +399,46 @@ if st.session_state.step == 1:
       st.rerun()
 
   # 1. MATERIAL & THICKNESS INPUTS
-  mats_list = ["Select Material..."] + list(vlookup_data["Material"].dropna().unique())
+  with st.container(key="mat_panel"):
+    st.markdown('<div class="panel-label">✦ Material &amp; Thickness</div>', unsafe_allow_html=True)
+    mats_list = ["Select Material..."] + list(vlookup_data["Material"].dropna().unique())
   
-  sel_mat_idx = (
-      mats_list.index(st.session_state.selected_mat)
-      if st.session_state.get("selected_mat") in mats_list
-      else 0
-  )
-  
-  selected_mat = st.selectbox(
-      "Material Choice", mats_list, index=sel_mat_idx
-  )
-
-  if selected_mat != "Select Material...":
-    st.session_state.selected_mat = selected_mat
-    available_thick_raw = (
-        vlookup_data[vlookup_data["Material"] == selected_mat]["Thickness"]
-        .dropna()
-        .unique()
+    sel_mat_idx = (
+        mats_list.index(st.session_state.selected_mat)
+        if st.session_state.get("selected_mat") in mats_list
+        else 0
     )
-    thick_list = ["Select Thickness..."] + list(available_thick_raw)
-  else:
-    st.session_state.selected_mat = None
-    thick_list = ["Select Thickness..."]
-
-  sel_thick_idx = (
-      thick_list.index(st.session_state.selected_thick)
-      if st.session_state.get("selected_thick") in thick_list
-      else 0
-  )
-
-  selected_thick = st.selectbox(
-      "Thickness Choice", thick_list, index=sel_thick_idx
-  )
   
-  if selected_thick != "Select Thickness...":
-    st.session_state.selected_thick = selected_thick
-  else:
-    st.session_state.selected_thick = None
+    selected_mat = st.selectbox(
+        "Material Choice", mats_list, index=sel_mat_idx
+    )
 
-  st.divider()
+    if selected_mat != "Select Material...":
+      st.session_state.selected_mat = selected_mat
+      available_thick_raw = (
+          vlookup_data[vlookup_data["Material"] == selected_mat]["Thickness"]
+          .dropna()
+          .unique()
+      )
+      thick_list = ["Select Thickness..."] + list(available_thick_raw)
+    else:
+      st.session_state.selected_mat = None
+      thick_list = ["Select Thickness..."]
+
+    sel_thick_idx = (
+        thick_list.index(st.session_state.selected_thick)
+        if st.session_state.get("selected_thick") in thick_list
+        else 0
+    )
+
+    selected_thick = st.selectbox(
+        "Thickness Choice", thick_list, index=sel_thick_idx
+    )
+  
+    if selected_thick != "Select Thickness...":
+      st.session_state.selected_thick = selected_thick
+    else:
+      st.session_state.selected_thick = None
 
   # 2. DEFAULT TO MANUAL DATA ENTRY TAB FIRST
   tab_manual, tab_upload = st.tabs(
@@ -945,9 +1021,9 @@ elif st.session_state.step == 2:
 # FOOTER
 # ------------------------------------------------------
 st.markdown(
-    '<div class="ws-footer">'
-    '<div class="welding">✦ Welding required on kits ✦</div>'
-    '<div class="contact"><b>1-317-789-1733</b> &nbsp;·&nbsp; www.warnersteel.com<br>'
-    "sales@warnersteel.com</div></div>",
+    '<div class="ws-footer"><div class="brand">'
+    + (f'<img src="{_logo_uri}" alt="">' if _logo_uri else "")
+    + '<div><div class="script">Warner Steel</div><div class="small">Since 1995 · Indianapolis, IN</div></div></div>'
+    '<div class="contact"><b>1-317-789-1733</b><br>www.warnersteel.com<br>sales@warnersteel.com</div></div>',
     unsafe_allow_html=True,
 )
