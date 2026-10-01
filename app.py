@@ -69,7 +69,7 @@ st.markdown(
         font-weight: 700 !important;
     }
 
-    /* FIX QUESTION MARK ICON COLOR (DARK & LEGIBLE) */
+    /* FIX QUESTION MARK ICON COLOR */
     [data-testid="stTooltipIcon"] svg, [data-testid="stTooltipHoverTarget"] svg {
         fill: #1a1a1a !important;
         color: #1a1a1a !important;
@@ -214,20 +214,13 @@ st.markdown(
 
     /* 10. TOTAL PRICE BANNER STYLING */
     .total-price-banner {
-        background-color: #1a1a1a;
-        border-left: 8px solid #cc1111;
-        padding: 18px 24px;
-        border-radius: 10px;
-        margin-top: 15px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .total-price-banner h2 {
-        color: #ffffff !important;
-        margin: 0;
-        font-size: 2.3rem !important;
-        font-weight: 900 !important;
-        letter-spacing: 0.5px;
+        background-color: #1a1a1a !important;
+        border-left: 8px solid #cc1111 !important;
+        padding: 18px 24px !important;
+        border-radius: 10px !important;
+        margin-top: 15px !important;
+        margin-bottom: 20px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
     }
 
     /* 11. WARNER STEEL CRIMSON BUTTONS & TABS */
@@ -315,12 +308,14 @@ except Exception as e:
   st.stop()
 
 # ------------------------------------------------------
-# HEADER & LOGO
+# HEADER & LOGO (CASE-INSENSITIVE FILE CHECK)
 # ------------------------------------------------------
 header_col1, header_col2 = st.columns([1, 5])
 
 with header_col1:
-  if os.path.exists("logo.png"):
+  if os.path.exists("Logo.png"):
+    st.image("Logo.png", width=140)
+  elif os.path.exists("logo.png"):
     st.image("logo.png", width=140)
   elif os.path.exists("warner_steel_1280x1280.png"):
     st.image("warner_steel_1280x1280.png", width=140)
@@ -363,7 +358,6 @@ def reset_quote_data():
   st.session_state.input_mode = "manual"
   st.session_state.selected_mat = None
   st.session_state.selected_thick = None
-  # Preserved manual input field state
   st.session_state.manual_cut_len = None
   st.session_state.manual_pierces = None
   st.session_state.manual_len = None
@@ -442,7 +436,7 @@ if st.session_state.step == 1:
       ["✏️ Manual Data Entry", "⚡ Upload File (.dxf / .svg / .tap)"]
   )
 
-  # --- TAB 1: MANUAL DATA ENTRY (PRESERVES VALUES ON REVISE) ---
+  # --- TAB 1: MANUAL DATA ENTRY ---
   with tab_manual:
     st.info(
         "💡 **Manual Entry Note:** Enter the **TOTAL Cut Length** and **TOTAL"
@@ -494,14 +488,12 @@ if st.session_state.step == 1:
           ),
       )
 
-      # Persist manual inputs into session_state for revisions
       st.session_state.manual_cut_len = total_job_cut_len_input
       st.session_state.manual_pierces = total_job_pierces_input
       st.session_state.manual_len = raw_array_len_input
       st.session_state.manual_wid = raw_array_wid_input
       st.session_state.manual_qty_val = manual_qty_input
 
-      # Convert None inputs to underlying defaults for calculation
       total_job_cut_len = total_job_cut_len_input or 0.0
       total_job_pierces = total_job_pierces_input or 0
       raw_array_len = raw_array_len_input or 0.0
@@ -528,7 +520,7 @@ if st.session_state.step == 1:
           unsafe_allow_html=True,
       )
 
-  # --- TAB 2: FILE UPLOADER (DXF, SVG, TAP / G-CODE) ---
+  # --- TAB 2: FILE UPLOADER ---
   with tab_upload:
     uploaded_file = st.file_uploader(
         "Drop DXF, SVG, or TAP/G-code file here to extract geometry and cut layers",
@@ -585,7 +577,6 @@ if st.session_state.step == 1:
               for layer_name in data["all_layers"]
           }
 
-    # Interactive Layer Controls & Live Preview
     if st.session_state.get("parsed_layer_data") is not None:
       layer_info = st.session_state.parsed_layer_data
       all_layers = layer_info["all_layers"]
@@ -754,12 +745,23 @@ elif st.session_state.step == 2:
 
   spacing_gap = 0.25
 
-  if qty == 1:
+  # Check if uploaded file is already a multi-part array (e.g. TAP or multi-part SVG)
+  is_already_array = False
+  if st.session_state.get("input_mode") == "upload" and st.session_state.get("parsed_layer_data") is not None:
+    if "TAP Cut Toolpath" in st.session_state.parsed_layer_data.get("all_layers", []):
+      is_already_array = True
+
+  if is_already_array:
     cols, rows = 1, 1
+    display_qty = 1
   else:
-    cols = math.ceil(math.sqrt(qty * (part_h / part_w if part_w > 0 else 1.0)))
-    cols = max(1, min(qty, cols))
-    rows = math.ceil(qty / cols)
+    display_qty = qty
+    if qty == 1:
+      cols, rows = 1, 1
+    else:
+      cols = math.ceil(math.sqrt(qty * (part_h / part_w if part_w > 0 else 1.0)))
+      cols = max(1, min(qty, cols))
+      rows = math.ceil(qty / cols)
 
   array_width = (cols * part_w) + (max(0, cols - 1) * spacing_gap)
   array_height = (rows * part_h) + (max(0, rows - 1) * spacing_gap)
@@ -783,14 +785,14 @@ elif st.session_state.step == 2:
       ) / 144.0
 
       shape_discount_pct = 80.0
-      if qty > 1:
+      if qty > 1 and not is_already_array:
         efficiency_multiplier = 1.0 - (
             (1.0 - hull_ratio) * (shape_discount_pct / 100.0)
         )
       else:
         efficiency_multiplier = 1.0
 
-      total_area_sq_ft = base_part_area_sq_ft * qty * efficiency_multiplier
+      total_area_sq_ft = base_part_area_sq_ft * (1 if is_already_array else qty) * efficiency_multiplier
 
       def clean_num(val):
         if pd.isna(val):
@@ -807,8 +809,8 @@ elif st.session_state.step == 2:
       setup_sqft_rate = clean_num(row.get("Setup_cost_per_sqft", 0))
       laser_velocity = clean_num(row.get("Laser_Velocity", 0))
 
-      total_cut_length = cut_length * qty
-      total_pierces = pierces * qty
+      total_cut_length = cut_length * (1 if is_already_array else qty)
+      total_pierces = pierces * (1 if is_already_array else qty)
 
       cut_price = total_cut_length * cost_per_in
       pierce_price = total_pierces * cost_per_pierce
@@ -882,11 +884,13 @@ elif st.session_state.step == 2:
             unsafe_allow_html=True,
         )
 
-      # TOTAL PRICE BANNER
+      # TOTAL PRICE BANNER (EXPLICIT WHITE TEXT INLINE OVERRIDE)
       st.markdown(
           f"""
           <div class="total-price-banner">
-              <h2>Total Price ({qty} pc{"s" if qty > 1 else ""}): ${total_price:.2f}</h2>
+              <h2 style="color: #ffffff !important; margin: 0; font-size: 2.3rem !important; font-weight: 900 !important;">
+                  Total Price ({qty} pc{"s" if qty > 1 else ""}): ${total_price:.2f}
+              </h2>
           </div>
       """,
           unsafe_allow_html=True,
@@ -969,7 +973,7 @@ elif st.session_state.step == 2:
 
     for r in range(rows):
       for c in range(cols):
-        if (r * cols + c) >= qty:
+        if (r * cols + c) >= display_qty:
           break
 
         grid_x = c * cell_w
