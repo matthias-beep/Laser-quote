@@ -27,250 +27,166 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    /* 1. FORCE LIGHT INDUSTRIAL CATALOG BACKGROUND ON ALL STREAMLIT CONTAINERS */
-    html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stMainBlockContainer"], .main {
-        background-color: #eaeaea !important;
-        color: #1a1a1a !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Montserrat:wght@400;500;600;700;800&display=swap');
 
-    /* 2. CATALOG HEADER BAR */
-    .catalog-header-bar {
-        background-color: #1a1a1a !important;
-        border-bottom: 4px solid #cc1111 !important;
-        border-radius: 12px;
-        padding: 20px 28px;
-        margin-bottom: 25px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
+:root {
+  --ink:#1a1a1a; --red:#cc1111; --red-dk:#a50d0d; --panel:#d9d9d9;
+  --card:#ffffff; --brown:#5b4a38; --muted:#6b6b6b; --line:#e3e3e3;
+  --display:'Syne','Arial Black','Segoe UI',sans-serif;
+  --body:'Montserrat','Segoe UI',Roboto,Arial,sans-serif;
+}
 
-    /* 3. SECTION HEADERS WITH RED STAR ACCENT */
-    .catalog-title {
-        font-size: 1.25rem !important;
-        font-weight: 900 !important;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        color: #1a1a1a !important;
-        margin-bottom: 14px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .catalog-star {
-        color: #cc1111 !important;
-        font-size: 1.3rem;
-    }
+/* ---------- BASE ---------- */
+html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"],
+[data-testid="stMainBlockContainer"], .main {
+  background:#ffffff !important; color:var(--ink) !important;
+  font-family:var(--body) !important;
+}
+[data-testid="stHeader"] { background:transparent !important; }
+[data-testid="stMainBlockContainer"] { max-width:1240px; padding-top:2.2rem; }
+label, p, span, [data-testid="stWidgetLabel"], [data-testid="stMarkdownContainer"] p {
+  color:var(--ink) !important; font-family:var(--body) !important;
+  font-weight:600 !important; letter-spacing:.02em;
+}
+[data-testid="stWidgetLabel"] p { font-size:.78rem !important; text-transform:uppercase;
+  letter-spacing:.09em; color:var(--brown) !important; font-weight:700 !important; }
+[data-testid="stCaptionContainer"] p { color:var(--muted) !important; font-weight:500 !important; }
+hr { border:none !important; border-top:1px solid var(--line) !important; margin:1.6rem 0 !important; }
 
-    /* 4. FORM FIELD LABELS, CHECKBOXES & INFO CONTRAST FIX */
-    label, p, span, [data-testid="stWidgetLabel"], [data-testid="stMarkdownContainer"] p {
-        color: #1a1a1a !important;
-        font-weight: 700 !important;
-    }
+/* ---------- HERO ---------- */
+.ws-hero { display:flex; align-items:center; justify-content:space-between; gap:32px;
+  padding:6px 4px 26px 4px; }
+.ws-hero h1 { font-family:var(--display) !important; font-weight:800 !important;
+  font-size:clamp(2.6rem,6vw,4.6rem) !important; line-height:.92 !important;
+  letter-spacing:.01em; margin:0 !important; padding:0 !important;
+  background:linear-gradient(90deg,#111 0%,#111 38%,#6a6a6a 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent !important;
+  -webkit-text-fill-color:transparent; }
+.ws-hero .sub { font-family:var(--body); font-weight:500; text-transform:uppercase;
+  letter-spacing:.28em; color:var(--red); font-size:clamp(1rem,2.2vw,1.6rem);
+  margin-top:14px; }
+.ws-hero .addr { color:var(--muted); font-size:.78rem; letter-spacing:.06em; margin-top:10px;
+  font-weight:500; }
+.ws-hero img { width:150px; height:150px; border-radius:50%;
+  box-shadow:0 8px 24px rgba(0,0,0,.18); flex:none; }
+@media (max-width:700px){ .ws-hero img{ width:96px; height:96px; } }
 
-    /* FIX QUESTION MARK ICON COLOR */
-    [data-testid="stTooltipIcon"] svg, [data-testid="stTooltipHoverTarget"] svg {
-        fill: #1a1a1a !important;
-        color: #1a1a1a !important;
-        opacity: 0.85 !important;
-    }
+/* ---------- SECTION TITLES ---------- */
+.catalog-title { font-family:var(--display) !important; font-size:1.15rem !important;
+  font-weight:800 !important; text-transform:uppercase; letter-spacing:.07em;
+  color:var(--ink) !important; margin:6px 0 16px 0; display:flex; align-items:center; gap:10px; }
+.catalog-star { color:var(--red) !important; font-size:1.4rem; line-height:1; }
+h2, h3, [data-testid="stSubheader"] { font-family:var(--display) !important;
+  text-transform:uppercase; letter-spacing:.05em; font-weight:800 !important; color:var(--ink) !important; }
 
-    /* FIX TOOLTIP POPUP TEXT */
-    div[data-baseweb="tooltip"] {
-        background-color: #1a1a1a !important;
-        color: #ffffff !important;
-        border: 1px solid #cc1111 !important;
-        border-radius: 6px !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-    }
-    div[data-baseweb="tooltip"] * {
-        color: #ffffff !important;
-        font-weight: 600 !important;
-    }
+/* ---------- INPUTS ---------- */
+div[data-baseweb="input"] > div, div[data-baseweb="select"] > div,
+div[data-baseweb="base-input"] {
+  background:#fff !important; border:1.5px solid #cfcfcf !important;
+  border-radius:12px !important; font-weight:600 !important; color:var(--ink) !important;
+  transition:border-color .15s, box-shadow .15s; }
+div[data-baseweb="input"]:focus-within > div, div[data-baseweb="select"]:focus-within > div {
+  border-color:var(--red) !important; box-shadow:0 0 0 3px rgba(204,17,17,.14) !important; }
+input { color:var(--ink) !important; font-family:var(--body) !important; }
+[data-testid="stNumberInput"] button { border-radius:10px !important; }
+[data-testid="stCheckbox"] label span { font-weight:600 !important; text-transform:none; letter-spacing:.02em; }
+[data-testid="stTooltipIcon"] svg { fill:var(--ink) !important; opacity:.7 !important; }
+div[data-baseweb="tooltip"] { background:var(--ink) !important; border:1px solid var(--red) !important;
+  border-radius:10px !important; box-shadow:0 8px 24px rgba(0,0,0,.3) !important; }
+div[data-baseweb="tooltip"] * { color:#fff !important; font-weight:500 !important; }
 
-    /* High Contrast Alert & Info Boxes */
-    .stAlert, [data-testid="stAlert"] {
-        background-color: #ffffff !important;
-        border: 1.5px solid #cc1111 !important;
-        color: #1a1a1a !important;
-        border-radius: 8px !important;
-    }
-    .stAlert p, [data-testid="stAlert"] p {
-        color: #1a1a1a !important;
-        font-weight: 800 !important;
-    }
+/* ---------- ALERTS ---------- */
+[data-testid="stAlert"] { background:#fff !important; border:none !important;
+  border-left:5px solid var(--red) !important; border-radius:14px !important;
+  box-shadow:0 2px 10px rgba(0,0,0,.06); }
+[data-testid="stAlert"] p { font-weight:600 !important; font-size:.9rem !important; }
 
-    /* 5. FORM INPUTS & DROPDOWNS */
-    div[data-baseweb="input"] > div, div[data-baseweb="select"] > div {
-        background-color: #ffffff !important;
-        border: 1.5px solid #cccccc !important;
-        color: #1a1a1a !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-    }
-    input {
-        color: #1a1a1a !important;
-    }
+/* ---------- TABS + ARCHED PANEL (catalog signature) ---------- */
+.stTabs [data-baseweb="tab-list"] { gap:6px; border-bottom:none !important; padding-bottom:0; }
+.stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"] { display:none !important; }
+.stTabs [data-baseweb="tab"] { background:#efefef !important; border:none !important;
+  border-radius:16px 16px 0 0 !important; padding:12px 24px !important; height:auto !important; }
+.stTabs [data-baseweb="tab"] p { color:var(--ink) !important; font-weight:700 !important;
+  font-size:.82rem !important; text-transform:uppercase; letter-spacing:.08em; }
+.stTabs [aria-selected="true"] { background:var(--panel) !important; }
+.stTabs [aria-selected="true"] p { color:var(--red) !important; font-weight:800 !important; }
+.stTabs [data-baseweb="tab-panel"] { background:var(--panel); padding:30px 32px 32px 32px !important;
+  border-radius:0 120px 28px 28px; margin-top:0; }
+@media (max-width:700px){ .stTabs [data-baseweb="tab-panel"]{ border-radius:0 40px 20px 20px; padding:20px !important; } }
 
-    /* 6. LIGHT FILE UPLOADER DROP-ZONE */
-    [data-testid="stFileUploader"] {
-        background-color: #ffffff !important;
-        border: 2px dashed #cccccc !important;
-        border-radius: 10px !important;
-        padding: 12px !important;
-    }
-    [data-testid="stFileUploader"] section {
-        background-color: #ffffff !important;
-    }
-    [data-testid="stFileUploader"] *, [data-testid="stUploadedFileData"] *, [data-testid="stFileUploaderFileName"] {
-        color: #1a1a1a !important;
-        font-weight: 800 !important;
-        opacity: 1 !important;
-    }
-    [data-testid="stFileUploader"] section button {
-        background-color: #f0f0f0 !important;
-        color: #1a1a1a !important;
-        border: 1.5px solid #cccccc !important;
-        font-weight: 800 !important;
-        border-radius: 6px !important;
-    }
-    [data-testid="stFileUploader"] section button:hover {
-        background-color: #e0e0e0 !important;
-        border-color: #cc1111 !important;
-        color: #cc1111 !important;
-    }
+/* ---------- FILE UPLOADER ---------- */
+[data-testid="stFileUploader"] section { background:#fff !important; border:2px dashed #b9b9b9 !important;
+  border-radius:18px !important; padding:22px !important; }
+[data-testid="stFileUploader"] section:hover { border-color:var(--red) !important; }
+[data-testid="stFileUploader"] * { color:var(--ink) !important; }
+[data-testid="stFileUploader"] section button { background:var(--ink) !important; color:#fff !important;
+  border:none !important; border-radius:999px !important; font-weight:700 !important;
+  text-transform:uppercase; letter-spacing:.06em; padding:8px 18px !important; }
+[data-testid="stFileUploader"] section button * { color:#fff !important; }
+[data-testid="stFileUploader"] section button:hover { background:var(--red) !important; }
 
-    /* 7. METRIC CARDS OVERRIDE */
-    [data-testid="stMetric"] {
-        background-color: #ffffff !important;
-        border: 1px solid #dcdcdc !important;
-        border-radius: 8px !important;
-        padding: 12px 16px !important;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
-    }
-    [data-testid="stMetricValue"] {
-        font-size: 1.8rem !important;
-        font-weight: 900 !important;
-        color: #1a1a1a !important;
-    }
-    [data-testid="stMetricLabel"] {
-        color: #cc1111 !important;
-        font-size: 0.85rem !important;
-        font-weight: 800 !important;
-        text-transform: uppercase;
-    }
+/* ---------- METRICS ---------- */
+[data-testid="stMetric"] { background:#fff !important; border:1px solid var(--line) !important;
+  border-top:4px solid var(--ink) !important; border-radius:16px !important;
+  padding:14px 18px !important; box-shadow:0 4px 14px rgba(0,0,0,.05) !important; }
+[data-testid="stMetricValue"] { font-family:var(--display) !important; font-size:1.55rem !important;
+  font-weight:800 !important; color:var(--ink) !important; }
+[data-testid="stMetricLabel"] p { color:var(--red) !important; font-size:.72rem !important;
+  font-weight:800 !important; text-transform:uppercase; letter-spacing:.1em; }
 
-    /* 8. RED ACCENT HIGHLIGHT BOX FOR COST PRICING */
-    .cost-card {
-        background-color: #fdf0f0;
-        border: 1.5px solid #f5c6c6;
-        border-left: 6px solid #cc1111;
-        border-radius: 8px;
-        padding: 10px 14px;
-        margin-bottom: 12px;
-        box-shadow: 0 2px 6px rgba(204, 17, 17, 0.08);
-    }
-    .cost-card label {
-        color: #cc1111 !important;
-        font-weight: 800 !important;
-        text-transform: uppercase;
-        font-size: 0.8rem;
-        display: block;
-        margin-bottom: 2px;
-        letter-spacing: 0.5px;
-    }
-    .cost-card span {
-        font-weight: 900;
-        font-size: 1.7rem;
-        color: #1a1a1a;
-    }
+/* ---------- COST + INFO CARDS ---------- */
+.cost-card { background:linear-gradient(135deg,#fff 0%,#fbeaea 100%); border:1px solid #f1c9c9;
+  border-radius:16px; padding:12px 18px; margin-bottom:12px; position:relative;
+  box-shadow:0 4px 14px rgba(204,17,17,.10); overflow:hidden; }
+.cost-card::before { content:"✦"; position:absolute; right:14px; top:8px; color:var(--red); opacity:.35; }
+.cost-card label { color:var(--red) !important; font-weight:800 !important; text-transform:uppercase;
+  font-size:.7rem; display:block; margin-bottom:2px; letter-spacing:.12em; }
+.cost-card span { font-family:var(--display); font-weight:800; font-size:1.65rem; color:var(--ink) !important; }
 
-    /* 9. CATALOG SPECIFICATIONS PANEL */
-    .info-card {
-        background-color: #ffffff;
-        border: 1px solid #dcdcdc;
-        border-left: 4px solid #cc1111;
-        padding: 10px 14px;
-        border-radius: 8px;
-        margin-bottom: 8px;
-        color: #1a1a1a;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    }
-    .info-card label {
-        color: #cc1111 !important;
-        font-weight: 800 !important;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        display: block;
-        margin-bottom: 1px;
-        letter-spacing: 0.5px;
-    }
-    .info-card span {
-        font-weight: 800;
-        font-size: 1.1rem;
-        color: #1a1a1a;
-    }
+.info-card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:12px 18px;
+  margin-bottom:10px; box-shadow:0 3px 12px rgba(0,0,0,.05); }
+.info-card label { color:var(--red) !important; font-weight:800 !important; text-transform:uppercase;
+  font-size:.68rem; display:block; margin-bottom:3px; letter-spacing:.12em; }
+.info-card span { font-weight:700; font-size:1rem; color:var(--ink) !important; line-height:1.55; }
+.tab-card { margin-top:24px; }
 
-    /* 10. TOTAL PRICE BANNER STYLING */
-    .total-price-banner {
-        background-color: #1a1a1a !important;
-        border-left: 8px solid #cc1111 !important;
-        padding: 18px 24px !important;
-        border-radius: 10px !important;
-        margin-top: 15px !important;
-        margin-bottom: 20px !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-    }
+/* ---------- TOTAL BANNER ---------- */
+.total-price-banner { background:var(--ink); padding:22px 30px 24px 30px; margin:18px 0 24px 0;
+  border-radius:0 90px 24px 24px; box-shadow:0 10px 28px rgba(0,0,0,.22); position:relative; }
+.total-price-banner::after { content:""; position:absolute; left:0; top:0; bottom:0; width:8px;
+  background:var(--red); border-radius:0 0 0 24px; }
+.total-price-banner .tp-label { display:block; color:var(--red) !important; font-weight:800;
+  letter-spacing:.2em; text-transform:uppercase; font-size:.75rem; margin-bottom:6px; }
+.total-price-banner .tp-value { font-family:var(--display); color:#fff !important; margin:0;
+  font-size:clamp(1.9rem,4vw,2.9rem); font-weight:800; letter-spacing:.01em; line-height:1.05; }
 
-    /* 11. WARNER STEEL CRIMSON BUTTONS & CLEAN TABS */
-    .stButton > button {
-        background-color: #cc1111 !important;
-        color: #ffffff !important;
-        font-weight: 800 !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 12px 24px !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.5px !important;
-        box-shadow: 0 3px 8px rgba(204, 17, 17, 0.3) !important;
-    }
-    .stButton > button:hover {
-        background-color: #aa0e0e !important;
-    }
+/* ---------- BUTTONS ---------- */
+.stButton > button { border-radius:999px !important; padding:12px 28px !important;
+  font-family:var(--body) !important; font-weight:800 !important; text-transform:uppercase !important;
+  letter-spacing:.09em !important; font-size:.8rem !important; transition:all .15s ease !important; }
+.stButton > button p { font-weight:800 !important; letter-spacing:.09em !important; }
+.stButton > button[kind="secondary"], [data-testid="stBaseButton-secondary"] {
+  background:#fff !important; border:1.5px solid var(--ink) !important; color:var(--ink) !important;
+  box-shadow:none !important; }
+.stButton > button[kind="secondary"] p, [data-testid="stBaseButton-secondary"] p { color:var(--ink) !important; }
+.stButton > button[kind="secondary"]:hover, [data-testid="stBaseButton-secondary"]:hover {
+  background:var(--ink) !important; }
+.stButton > button[kind="secondary"]:hover p, [data-testid="stBaseButton-secondary"]:hover p { color:#fff !important; }
+.stButton > button[kind="primary"], [data-testid="stBaseButton-primary"] {
+  background:var(--red) !important; border:none !important; color:#fff !important;
+  box-shadow:0 6px 16px rgba(204,17,17,.35) !important; }
+.stButton > button[kind="primary"] p, [data-testid="stBaseButton-primary"] p { color:#fff !important; }
+.stButton > button[kind="primary"]:hover, [data-testid="stBaseButton-primary"]:hover {
+  background:var(--red-dk) !important; transform:translateY(-1px); }
 
-    /* CLEAN & HIGH-CONTRAST TAB NAVIGATION */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        border-bottom: 2px solid #cc1111 !important;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: #ffffff !important;
-        border: 1.5px solid #cccccc !important;
-        border-bottom: none !important;
-        border-radius: 8px 8px 0 0 !important;
-        padding: 10px 20px !important;
-        font-weight: 800 !important;
-        color: #1a1a1a !important;
-    }
-    .stTabs [data-baseweb="tab"] p, .stTabs [data-baseweb="tab"] span {
-        color: #1a1a1a !important;
-        font-weight: 800 !important;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #1a1a1a !important;
-        border-color: #cc1111 !important;
-    }
-    .stTabs [aria-selected="true"] p, .stTabs [aria-selected="true"] span {
-        color: #ffffff !important;
-        font-weight: 900 !important;
-    }
-
-    hr {
-        border-top: 2px solid #cc1111 !important;
-    }
-    </style>
+/* ---------- FOOTER ---------- */
+.ws-footer { margin-top:44px; padding:22px 6px 6px 6px; border-top:3px solid var(--red);
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+.ws-footer .welding { font-family:var(--display); font-weight:800; color:var(--red);
+  letter-spacing:.06em; text-transform:uppercase; font-size:.95rem; }
+.ws-footer .contact { color:var(--muted); font-size:.8rem; letter-spacing:.05em; font-weight:500; text-align:right; }
+.ws-footer .contact b { color:var(--ink); }
+</style>
 """,
     unsafe_allow_html=True,
 )
@@ -320,7 +236,7 @@ except Exception as e:
 # ------------------------------------------------------
 # HEADER & LOGO (ROBUST FILE MATCH & INLINE SVG FALLBACK)
 # ------------------------------------------------------
-header_col1, header_col2 = st.columns([1, 5])
+import base64
 
 def get_logo_file():
   for f in glob.glob("*"):
@@ -328,31 +244,28 @@ def get_logo_file():
       return f
   return None
 
-logo_path = get_logo_file()
 
-with header_col1:
-  if logo_path:
-    st.image(logo_path, width=140)
-  else:
-    # High-contrast inline SVG logo fallback if image file is not found
-    st.markdown(
-        """
-        <div style="background-color: #1a1a1a; border-left: 5px solid #cc1111; padding: 12px; border-radius: 8px; text-align: center; width: 140px;">
-            <div style="color: #ffffff; font-weight: 900; font-size: 1.1rem; line-height: 1.1; letter-spacing: 1px;">WARNER</div>
-            <div style="color: #cc1111; font-weight: 900; font-size: 1.1rem; line-height: 1.1; letter-spacing: 1px;">STEEL</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+def logo_data_uri():
+  path = get_logo_file()
+  if not path:
+    return None
+  mime = "image/png" if path.lower().endswith("png") else "image/jpeg"
+  with open(path, "rb") as fh:
+    return f"data:{mime};base64," + base64.b64encode(fh.read()).decode()
 
-with header_col2:
-  st.title("Warner Steel Sales, Inc.")
-  st.caption(
-      "2623 E. Raymond St · Indianapolis, IN 46203 · (317) 789-1733 ·"
-      " sales@warnersteel.com"
-  )
 
-st.divider()
+_logo_uri = logo_data_uri()
+_logo_html = f'<img src="{_logo_uri}" alt="Warner Steel logo">' if _logo_uri else ""
+
+st.markdown(
+    '<div class="ws-hero"><div>'
+    "<h1>WARNER<br>STEEL</h1>"
+    '<div class="sub">Laser Quoting</div>'
+    '<div class="addr">2623 E. Raymond St · Indianapolis, IN 46203 · (317) 789-1733 ·'
+    " sales@warnersteel.com</div>"
+    "</div>" + _logo_html + "</div>",
+    unsafe_allow_html=True,
+)
 
 # ------------------------------------------------------
 # SESSION STATE INITIALIZATION & RESET HANDLER
@@ -530,7 +443,7 @@ if st.session_state.step == 1:
     with col_m2:
       st.markdown(
           f"""
-          <div class="info-card" style="margin-top: 25px;">
+          <div class="info-card tab-card">
               <label>Calculated Unit & Footprint Summary</label>
               <span>Per Part Cut Length: {per_part_cut_len:.2f} in</span><br>
               <span>Per Part Pierces: {per_part_pierces}</span><br>
@@ -576,7 +489,7 @@ if st.session_state.step == 1:
     }[cad_units]
 
     if uploaded_file is not None:
-      file_bytes = uploaded_file.read()
+      file_bytes = uploaded_file.getvalue()
       data, error = parse_uploaded_file(
           uploaded_file.name, file_bytes, unit_scale
       )
@@ -656,7 +569,7 @@ if st.session_state.step == 1:
 
         st.markdown(
             f"""
-            <div class="info-card" style="margin-top: 15px;">
+            <div class="info-card tab-card" style="margin-top:12px;">
                 <label>Active Geometry Summary (Incl. 0.5" Lead-In per Pierce)</label>
                 <span>Active Cut Length (Per Part): {active_geom['cut_length']} in</span><br>
                 <span>Active Pierces (Per Part): {active_geom['pierces']}</span><br>
@@ -671,7 +584,7 @@ if st.session_state.step == 1:
         fig_preview, ax_preview = plt.subplots(
             figsize=(6, 4.5), facecolor="#ffffff"
         )
-        ax_preview.set_facecolor("#fafafa")
+        ax_preview.set_facecolor("#ffffff")
 
         if active_geom["subpaths"]:
           for xs, ys in active_geom["subpaths"]:
@@ -907,9 +820,8 @@ elif st.session_state.step == 2:
       st.markdown(
           f"""
           <div class="total-price-banner">
-              <h2 style="color: #ffffff !important; margin: 0; font-size: 2.3rem !important; font-weight: 900 !important;">
-                  Total Price ({qty} pc{"s" if qty > 1 else ""}): ${total_price:.2f}
-              </h2>
+              <span class="tp-label">Total Price &nbsp;·&nbsp; {qty} pc{"s" if qty > 1 else ""}</span>
+              <h2 class="tp-value">${total_price:.2f}</h2>
           </div>
       """,
           unsafe_allow_html=True,
@@ -933,7 +845,7 @@ elif st.session_state.step == 2:
           fig_pie, ax_pie = plt.subplots(figsize=(3.8, 2.6), facecolor="none")
           ax_pie.set_facecolor("none")
 
-          colors = ["#cc1111", "#e65100", "#1976d2", "#388e3c"]
+          colors = ["#cc1111", "#1a1a1a", "#8a6d4b", "#a8a8a8"]
 
           wedges, texts, autotexts = ax_pie.pie(
               filtered_values,
@@ -942,9 +854,7 @@ elif st.session_state.step == 2:
               startangle=140,
               colors=colors[: len(filtered_values)],
               textprops=dict(color="#1a1a1a", fontsize=8, weight="bold"),
-              wedgeprops=dict(
-                  width=0.45, edgecolor=(0.0, 0.0, 0.0, 0.15), linewidth=1.2
-              ),
+              wedgeprops=dict(width=0.42, edgecolor="#ffffff", linewidth=2),
           )
 
           for autotext in autotexts:
@@ -985,7 +895,7 @@ elif st.session_state.step == 2:
     )
 
     fig, ax = plt.subplots(figsize=(7, 5), facecolor="#ffffff")
-    ax.set_facecolor("#fafafa")
+    ax.set_facecolor("#ffffff")
 
     cell_w = part_w + spacing_gap
     cell_h = part_h + spacing_gap
@@ -1020,7 +930,7 @@ elif st.session_state.step == 2:
               part_w,
               part_h,
               fill=True,
-              facecolor="#fdf0f0",
+              facecolor="#fbeaea",
               edgecolor="#cc1111",
               linewidth=1.2,
           )
@@ -1029,3 +939,15 @@ elif st.session_state.step == 2:
     ax.set_aspect("equal", adjustable="datalim")
     ax.axis("off")
     st.pyplot(fig, clear_figure=True)
+
+
+# ------------------------------------------------------
+# FOOTER
+# ------------------------------------------------------
+st.markdown(
+    '<div class="ws-footer">'
+    '<div class="welding">✦ Welding required on kits ✦</div>'
+    '<div class="contact"><b>1-317-789-1733</b> &nbsp;·&nbsp; www.warnersteel.com<br>'
+    "sales@warnersteel.com</div></div>",
+    unsafe_allow_html=True,
+)
