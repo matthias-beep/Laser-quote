@@ -3,10 +3,18 @@ import io
 import math
 import os
 import urllib.request
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
+
+try:
+  from pdf_report import build_estimate_pdf
+
+  PDF_AVAILABLE = True
+except ImportError:
+  PDF_AVAILABLE = False
 
 from geometry import (
     parse_dxf_layers,
@@ -252,6 +260,15 @@ h3::after { content:""; display:block; width:54px; height:4px; background:var(--
   box-shadow:0 6px 20px rgba(0,0,0,.09); }
 [data-testid="stCheckbox"] { padding:2px 0; }
 
+/* ---------- DOWNLOAD BUTTON ---------- */
+[data-testid="stDownloadButton"] button { border-radius:999px !important; padding:12px 28px !important;
+  white-space:nowrap !important; font-weight:800 !important; text-transform:uppercase !important;
+  letter-spacing:.07em !important; font-size:.78rem !important; background:var(--red) !important;
+  border:none !important; box-shadow:0 6px 16px rgba(204,17,17,.35) !important; transition:all .15s ease !important; }
+[data-testid="stDownloadButton"] button p, [data-testid="stDownloadButton"] button span { color:#fff !important; font-weight:800 !important; }
+[data-testid="stDownloadButton"] button:hover { background:var(--red-dk) !important; transform:translateY(-1px); }
+[data-testid="stDownloadButton"] { margin:-6px 0 22px 0; }
+
 /* ---------- FOOTER ---------- */
 .ws-footer { margin-top:52px; background:var(--ink); border-top:4px solid var(--red);
   border-radius:90px 26px 0 0; padding:28px 40px 26px 40px; display:flex;
@@ -377,6 +394,8 @@ def reset_quote_data():
   st.session_state.manual_len = None
   st.session_state.manual_wid = None
   st.session_state.manual_qty_val = None
+  st.session_state.source_file = None
+  st.session_state.active_layers = []
   st.session_state.step = 1
 
 
@@ -594,6 +613,7 @@ if st.session_state.step == 1:
         st.session_state.parsed_layer_data = data
         st.session_state.qty = part_qty_upload
         st.session_state.input_mode = "upload"
+        st.session_state.source_file = uploaded_file.name
 
         if (
             "layer_toggles" not in st.session_state
@@ -628,6 +648,7 @@ if st.session_state.step == 1:
           if is_active:
             active_layers.append(l_name)
 
+        st.session_state.active_layers = list(active_layers)
         if "TAP Cut Toolpath" in all_layers:
           active_geom = {
               "cut_length": layer_info["cut_length"],
@@ -734,6 +755,8 @@ if st.session_state.step == 1:
           st.session_state.part_w = st.session_state.length
         if st.session_state.part_h == 0.0:
           st.session_state.part_h = st.session_state.width
+        st.session_state.est_ref = datetime.now().strftime("WS-%y%m%d-%H%M")
+        st.session_state.est_date = datetime.now().strftime("%B %d, %Y").replace(" 0", " ")
         st.session_state.step = 2
         st.rerun()
 
@@ -920,6 +943,71 @@ elif st.session_state.step == 2:
       """,
           unsafe_allow_html=True,
       )
+
+      # --- DOWNLOAD ESTIMATE (PDF) ---
+      if PDF_AVAILABLE:
+        _is_upload = bool(subpaths_to_render)
+        _parsed = st.session_state.get("parsed_layer_data") or {}
+        _ref = st.session_state.get("est_ref") or datetime.now().strftime("WS-%y%m%d-%H%M")
+        _date = st.session_state.get("est_date") or datetime.now().strftime("%B %d, %Y")
+        try:
+          pdf_bytes = build_estimate_pdf(
+              {
+                  "ref": _ref,
+                  "date": _date,
+                  "material": str(selected_mat),
+                  "thickness": str(selected_thick),
+                  "gas": str(row.get("Gas", "N/A")),
+                  "qty": int(qty),
+                  "source": st.session_state.get("source_file") if _is_upload else "",
+                  "layers": st.session_state.get("active_layers", []) if _is_upload else [],
+                  "units_note": _parsed.get("units_note", "") if _is_upload else "",
+                  "length": length,
+                  "width": width,
+                  "part_w": part_w,
+                  "part_h": part_h,
+                  "cols": cols,
+                  "rows": rows,
+                  "array_w": array_width,
+                  "array_h": array_height,
+                  "spacing_gap": spacing_gap,
+                  "area_sqft": total_area_sq_ft,
+                  "efficiency": efficiency_multiplier,
+                  "cut_length_pp": cut_length,
+                  "pierces_pp": pierces,
+                  "total_cut_length": total_cut_length,
+                  "total_pierces": total_pierces,
+                  "cost_per_in": cost_per_in,
+                  "cost_per_pierce": cost_per_pierce,
+                  "gas_rate": gas_rate,
+                  "setup_rate": setup_sqft_rate,
+                  "cut_price": cut_price,
+                  "pierce_price": pierce_price,
+                  "gas_price": gas_price,
+                  "setup_price": setup_price,
+                  "total_price": total_price,
+                  "est_cut_time_sec": est_cut_time_sec,
+                  "subpaths": subpaths_to_render,
+                  "min_x": min_x,
+                  "min_y": min_y,
+                  "is_array": is_already_array,
+                  "lead_in": _parsed.get("lead_in", 0.5) if _is_upload else 0.0,
+                  "mode": "upload" if _is_upload else "manual",
+              },
+              logo_path=get_logo_file(),
+          )
+          st.download_button(
+              "Download Estimate (PDF)",
+              data=pdf_bytes,
+              file_name=f"Warner_Steel_Estimate_{_ref}.pdf",
+              mime="application/pdf",
+              type="primary",
+              key="dl_estimate_pdf",
+          )
+        except Exception as pdf_err:
+          st.warning(f"PDF could not be generated: {pdf_err}")
+      else:
+        st.info("Install the `reportlab` package to enable PDF estimate downloads.")
 
       # --- SIDE-BY-SIDE: COST PIE CHART & JOB DETAILS ---
       info_col1, info_col2 = st.columns([0.45, 0.55], gap="small")

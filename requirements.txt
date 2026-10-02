@@ -4,3 +4,4 @@ matplotlib
 ezdxf
 svgpathtools
 shapely
+reportlab
