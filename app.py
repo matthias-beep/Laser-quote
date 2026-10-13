@@ -1061,7 +1061,7 @@ elif st.session_state.step == 2:
             </div>
             <div class="info-card">
                 <label>Est. Total Cut Time</label>
-                <span>{est_cut_time_sec:.1f} sec ({est_cut_time_sec/60.0:.2f} min)</span>
+                <span>{est_cut_time_sec:.1f} sec ({est_cut_time_sec/3600.0:.2f} min)</span>
             </div>
             <div class="info-card">
                 <label>Estimated Array Footprint ({cols} × {rows} Grid, 0.25" gap)</label>
