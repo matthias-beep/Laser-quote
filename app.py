@@ -3,18 +3,10 @@ import io
 import math
 import os
 import urllib.request
-from datetime import datetime
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
-
-try:
-  from pdf_report import build_estimate_pdf
-
-  PDF_AVAILABLE = True
-except ImportError:
-  PDF_AVAILABLE = False
 
 from geometry import (
     parse_dxf_layers,
@@ -35,254 +27,268 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Montserrat:wght@400;500;600;700;800&family=Pacifico&display=swap');
+    /* 1. FORCE LIGHT INDUSTRIAL CATALOG BACKGROUND ON ALL STREAMLIT CONTAINERS */
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stMainBlockContainer"], .main {
+        background-color: #eaeaea !important;
+        color: #1a1a1a !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+    }
 
-:root {
-  --ink:#1a1a1a; --red:#cc1111; --red-dk:#a50d0d; --panel:#d9d9d9;
-  --card:#ffffff; --brown:#5b4a38; --muted:#6b6b6b; --line:#e3e3e3;
-  --script:'Pacifico','Brush Script MT',cursive;
-  --display:'Syne','Arial Black','Segoe UI',sans-serif;
-  --body:'Montserrat','Segoe UI',Roboto,Arial,sans-serif;
-}
+    /* 2. CATALOG HEADER BAR */
+    .catalog-header-bar {
+        background-color: #1a1a1a !important;
+        border-bottom: 4px solid #cc1111 !important;
+        border-radius: 12px;
+        padding: 20px 28px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
 
-/* ---------- BASE ---------- */
-html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"],
-[data-testid="stMainBlockContainer"], .main {
-  background:#ffffff !important; color:var(--ink) !important;
-  font-family:var(--body) !important;
-}
-[data-testid="stHeader"] { background:transparent !important; }
-[data-testid="stMainBlockContainer"] { max-width:1240px; padding-top:2.2rem; }
-label, p, span:not([data-testid="stIconMaterial"]), [data-testid="stWidgetLabel"], [data-testid="stMarkdownContainer"] p {
-  color:var(--ink) !important; font-family:var(--body) !important;
-  font-weight:600 !important; letter-spacing:.02em;
-}
-[data-testid="stWidgetLabel"] p { font-size:.78rem !important; text-transform:uppercase;
-  letter-spacing:.09em; color:var(--brown) !important; font-weight:700 !important; }
-[data-testid="stCaptionContainer"] p { color:var(--muted) !important; font-weight:500 !important; }
-hr { border:none !important; border-top:1px solid var(--line) !important; margin:1.6rem 0 !important; }
+    /* 3. SECTION HEADERS WITH RED STAR ACCENT */
+    .catalog-title {
+        font-size: 1.25rem !important;
+        font-weight: 900 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #1a1a1a !important;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .catalog-star {
+        color: #cc1111 !important;
+        font-size: 1.3rem;
+    }
 
-/* ---------- HERO ---------- */
-.ws-hero { display:flex; align-items:center; justify-content:space-between; gap:32px;
-  padding:6px 4px 26px 4px; }
-.ws-hero h1 { font-family:var(--display) !important; font-weight:800 !important;
-  font-size:clamp(2.6rem,6vw,4.6rem) !important; line-height:.92 !important;
-  letter-spacing:.01em; margin:0 !important; padding:0 !important;
-  background:linear-gradient(90deg,#111 0%,#111 38%,#6a6a6a 100%);
-  -webkit-background-clip:text; background-clip:text; color:transparent !important;
-  -webkit-text-fill-color:transparent; }
-.ws-hero .sub { font-family:var(--body); font-weight:500; text-transform:uppercase;
-  letter-spacing:.28em; color:var(--red); font-size:clamp(1rem,2.2vw,1.6rem);
-  margin-top:14px; }
-.ws-hero .addr { color:var(--muted); font-size:.78rem; letter-spacing:.06em; margin-top:10px;
-  font-weight:500; }
-.ws-hero img { width:150px; height:150px; border-radius:50%;
-  box-shadow:0 8px 24px rgba(0,0,0,.18); flex:none; }
-@media (max-width:700px){ .ws-hero img{ width:96px; height:96px; } }
+    /* 4. FORM FIELD LABELS, CHECKBOXES & INFO CONTRAST FIX */
+    label, p, span, [data-testid="stWidgetLabel"], [data-testid="stMarkdownContainer"] p {
+        color: #1a1a1a !important;
+        font-weight: 700 !important;
+    }
 
-/* ---------- SECTION TITLES ---------- */
-.catalog-title { font-family:var(--display) !important; font-size:1.15rem !important;
-  font-weight:800 !important; text-transform:uppercase; letter-spacing:.07em;
-  color:var(--ink) !important; margin:6px 0 16px 0; display:flex; align-items:center; gap:10px; }
-.catalog-star { color:var(--red) !important; font-size:1.4rem; line-height:1; }
-h2, h3, [data-testid="stSubheader"] { font-family:var(--display) !important;
-  text-transform:uppercase; letter-spacing:.05em; font-weight:800 !important; color:var(--ink) !important; }
+    /* FIX QUESTION MARK ICON COLOR */
+    [data-testid="stTooltipIcon"] svg, [data-testid="stTooltipHoverTarget"] svg {
+        fill: #1a1a1a !important;
+        color: #1a1a1a !important;
+        opacity: 0.85 !important;
+    }
 
-/* ---------- INPUTS (works with Streamlit's current react-aria markup) ---------- */
-[data-testid="stNumberInputContainer"],
-[data-testid="stTextInputRootElement"],
-[data-testid="stTextAreaRootElement"],
-[data-testid="stSelectbox"] [role="group"],
-[data-testid="stMultiSelect"] [role="group"] {
-  background:#e3e3e3 !important; border:1.5px solid #8f8f8f !important;
-  border-radius:12px !important; box-shadow:inset 0 1px 3px rgba(0,0,0,.10) !important;
-  transition:border-color .15s, box-shadow .15s, background .15s; }
-[data-testid="stNumberInputContainer"]:hover, [data-testid="stTextInputRootElement"]:hover,
-[data-testid="stSelectbox"] [role="group"]:hover { border-color:#4a4a4a !important; }
-[data-testid="stNumberInputContainer"]:focus-within, [data-testid="stTextInputRootElement"]:focus-within,
-[data-testid="stSelectbox"] [role="group"]:focus-within {
-  background:#ececec !important; border-color:var(--red) !important;
-  box-shadow:0 0 0 3px rgba(204,17,17,.18) !important; }
-[data-testid="stNumberInputField"], [data-testid="stSelectbox"] input, [data-testid="stTextInputRootElement"] input,
-[data-testid="stTextAreaRootElement"] textarea {
-  background:transparent !important; color:var(--ink) !important; font-family:var(--body) !important;
-  font-weight:600 !important; font-size:.95rem !important; }
-input::placeholder, textarea::placeholder { color:#6f6f6f !important; opacity:1 !important; font-weight:500 !important; }
-[data-testid="stNumberInputStepUp"], [data-testid="stNumberInputStepDown"] {
-  background:#c9c9c9 !important; color:var(--ink) !important; }
-[data-testid="stNumberInputStepUp"]:hover:not(:disabled), [data-testid="stNumberInputStepDown"]:hover:not(:disabled) {
-  background:var(--ink) !important; color:#fff !important; }
-[data-testid="stSelectbox"] button svg { color:var(--ink) !important; }
-[role="listbox"] { background:#f1f1f1 !important; border-radius:12px !important; }
-[role="option"] { color:var(--ink) !important; font-weight:600 !important; }
-[role="option"]:hover, [role="option"][data-focused="true"], [role="option"][aria-selected="true"] { background:#dcdcdc !important; }
-[data-testid="stCheckbox"] label span { font-weight:600 !important; text-transform:none; letter-spacing:.02em; }
-[data-testid="stTooltipIcon"] svg { fill:none !important; stroke:var(--ink) !important; opacity:.7; }
-[data-testid="stTooltipIcon"] button, [data-testid="stTooltipHoverTarget"] { background:transparent !important; }
-div[data-baseweb="tooltip"], div[data-baseweb="popover"] [data-testid="stTooltipContent"] {
-  background:var(--ink) !important; border:1px solid var(--red) !important;
-  border-radius:10px !important; box-shadow:0 8px 24px rgba(0,0,0,.3) !important; }
-div[data-baseweb="tooltip"] *, [data-testid="stTooltipContent"] * { color:#fff !important; font-weight:500 !important; }
+    /* FIX TOOLTIP POPUP TEXT */
+    div[data-baseweb="tooltip"] {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        border: 1px solid #cc1111 !important;
+        border-radius: 6px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+    }
+    div[data-baseweb="tooltip"] * {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
 
-/* ---------- ALERTS ---------- */
-[data-testid="stAlert"] { background:transparent !important; border:none !important; box-shadow:none !important; }
-[data-testid="stAlertContainer"] { background:#fff !important; border:none !important;
-  border-left:5px solid var(--red) !important; border-radius:14px !important;
-  box-shadow:0 2px 10px rgba(0,0,0,.08) !important; }
-[data-testid="stAlertContainer"] p { font-weight:600 !important; font-size:.9rem !important; color:var(--ink) !important; }
+    /* High Contrast Alert & Info Boxes */
+    .stAlert, [data-testid="stAlert"] {
+        background-color: #ffffff !important;
+        border: 1.5px solid #cc1111 !important;
+        color: #1a1a1a !important;
+        border-radius: 8px !important;
+    }
+    .stAlert p, [data-testid="stAlert"] p {
+        color: #1a1a1a !important;
+        font-weight: 800 !important;
+    }
 
-/* ---------- TABS: folder tabs that join the arched grey panel ---------- */
-[role="tablist"] { gap:6px !important; border-bottom:none !important; box-shadow:none !important; padding:0 !important; }
-[role="tablist"]::before, [role="tablist"]::after { display:none !important; }
-.react-aria-SelectionIndicator { display:none !important; }
-[data-testid="stTab"] { background:#ececec !important; border:none !important; border-bottom:none !important;
-  border-radius:16px 16px 0 0 !important; padding:12px 26px !important; height:auto !important;
-  transition:background .15s; }
-[data-testid="stTab"]:hover { background:#e0e0e0 !important; }
-[data-testid="stTab"] p { color:var(--ink) !important; font-weight:700 !important; font-size:.78rem !important;
-  line-height:1.2 !important; text-transform:uppercase; letter-spacing:.09em; white-space:nowrap; }
-[data-testid="stTab"][aria-selected="true"] { background:var(--panel) !important; }
-[data-testid="stTab"][aria-selected="true"] p { color:var(--red) !important; font-weight:800 !important; }
-[data-testid="stTabPanel"] { background:var(--panel) !important; padding:30px 32px 32px 32px !important;
-  border-radius:0 110px 28px 28px; margin-top:0 !important; }
-@media (max-width:700px){ [data-testid="stTabPanel"]{ border-radius:0 40px 20px 20px; padding:20px !important; }
-  [data-testid="stTab"]{ padding:10px 14px !important; } [data-testid="stTab"] p{ font-size:.68rem !important; } }
+    /* 5. FORM INPUTS & DROPDOWNS */
+    div[data-baseweb="input"] > div, div[data-baseweb="select"] > div {
+        background-color: #ffffff !important;
+        border: 1.5px solid #cccccc !important;
+        color: #1a1a1a !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+    }
+    input {
+        color: #1a1a1a !important;
+    }
 
-/* ---------- FILE UPLOADER ---------- */
-[data-testid="stFileUploader"] section { background:#fff !important; border:2px dashed #b9b9b9 !important;
-  border-radius:18px !important; padding:22px !important; }
-[data-testid="stFileUploader"] section:hover { border-color:var(--red) !important; }
-[data-testid="stFileUploader"] * { color:var(--ink) !important; }
-[data-testid="stFileUploader"] section button { background:var(--ink) !important; color:#fff !important;
-  border:none !important; border-radius:999px !important; font-weight:700 !important;
-  text-transform:uppercase; letter-spacing:.06em; padding:8px 18px !important; }
-[data-testid="stFileUploader"] section button * { color:#fff !important; }
-[data-testid="stFileUploader"] section button:hover { background:var(--red) !important; }
+    /* 6. LIGHT FILE UPLOADER DROP-ZONE */
+    [data-testid="stFileUploader"] {
+        background-color: #ffffff !important;
+        border: 2px dashed #cccccc !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+    }
+    [data-testid="stFileUploader"] section {
+        background-color: #ffffff !important;
+    }
+    [data-testid="stFileUploader"] *, [data-testid="stUploadedFileData"] *, [data-testid="stFileUploaderFileName"] {
+        color: #1a1a1a !important;
+        font-weight: 800 !important;
+        opacity: 1 !important;
+    }
+    [data-testid="stFileUploader"] section button {
+        background-color: #f0f0f0 !important;
+        color: #1a1a1a !important;
+        border: 1.5px solid #cccccc !important;
+        font-weight: 800 !important;
+        border-radius: 6px !important;
+    }
+    [data-testid="stFileUploader"] section button:hover {
+        background-color: #e0e0e0 !important;
+        border-color: #cc1111 !important;
+        color: #cc1111 !important;
+    }
 
-/* ---------- METRICS ---------- */
-[data-testid="stMetric"] { background:#fff !important; border:1px solid var(--line) !important;
-  border-radius:16px !important; padding:14px 18px !important; box-shadow:0 4px 14px rgba(0,0,0,.06) !important; }
-[data-testid="stMetric"] { min-height:96px; }
-[data-testid="stMetricValue"], [data-testid="stMetricValue"] > div { font-family:var(--display) !important;
-  font-size:1.35rem !important; font-weight:800 !important; color:var(--ink) !important;
-  white-space:normal !important; overflow:visible !important; text-overflow:clip !important; }
-[data-testid="stMetricLabel"], [data-testid="stMetricLabel"] > div, [data-testid="stMetricLabel"] p {
-  white-space:normal !important; overflow:visible !important; text-overflow:clip !important; }
-[data-testid="stMetricLabel"] p { color:var(--red) !important; font-size:.68rem !important; line-height:1.3 !important;
-  font-weight:800 !important; text-transform:uppercase; letter-spacing:.07em; }
+    /* 7. METRIC CARDS OVERRIDE */
+    [data-testid="stMetric"] {
+        background-color: #ffffff !important;
+        border: 1px solid #dcdcdc !important;
+        border-radius: 8px !important;
+        padding: 12px 16px !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
+    }
+    [data-testid="stMetricValue"] {
+        font-size: 1.8rem !important;
+        font-weight: 900 !important;
+        color: #1a1a1a !important;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #cc1111 !important;
+        font-size: 0.85rem !important;
+        font-weight: 800 !important;
+        text-transform: uppercase;
+    }
 
-/* ---------- COST + INFO CARDS ---------- */
-.cost-card { background:linear-gradient(135deg,#fff 0%,#fbeaea 100%); border:1px solid #f1c9c9;
-  border-radius:16px; padding:12px 18px; margin-bottom:12px; position:relative;
-  box-shadow:0 4px 14px rgba(204,17,17,.10); overflow:hidden; }
-.cost-card::before { content:"✦"; position:absolute; right:14px; top:8px; color:var(--red); opacity:.35; }
-.cost-card label { color:var(--red) !important; font-weight:800 !important; text-transform:uppercase;
-  font-size:.7rem; display:block; margin-bottom:2px; letter-spacing:.12em; }
-.cost-card span { font-family:var(--display); font-weight:800; font-size:1.65rem; color:var(--ink) !important; }
+    /* 8. RED ACCENT HIGHLIGHT BOX FOR COST PRICING */
+    .cost-card {
+        background-color: #fdf0f0;
+        border: 1.5px solid #f5c6c6;
+        border-left: 6px solid #cc1111;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 6px rgba(204, 17, 17, 0.08);
+    }
+    .cost-card label {
+        color: #cc1111 !important;
+        font-weight: 800 !important;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        display: block;
+        margin-bottom: 2px;
+        letter-spacing: 0.5px;
+    }
+    .cost-card span {
+        font-weight: 900;
+        font-size: 1.7rem;
+        color: #1a1a1a;
+    }
 
-.info-card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:12px 18px;
-  margin-bottom:10px; box-shadow:0 3px 12px rgba(0,0,0,.05); }
-.info-card label { color:var(--red) !important; font-weight:800 !important; text-transform:uppercase;
-  font-size:.68rem; display:block; margin-bottom:3px; letter-spacing:.12em; }
-.info-card span { font-weight:700; font-size:1rem; color:var(--ink) !important; line-height:1.55; }
-.tab-card { margin-top:24px; }
+    /* 9. CATALOG SPECIFICATIONS PANEL */
+    .info-card {
+        background-color: #ffffff;
+        border: 1px solid #dcdcdc;
+        border-left: 4px solid #cc1111;
+        padding: 10px 14px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        color: #1a1a1a;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .info-card label {
+        color: #cc1111 !important;
+        font-weight: 800 !important;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        display: block;
+        margin-bottom: 1px;
+        letter-spacing: 0.5px;
+    }
+    .info-card span {
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: #1a1a1a;
+    }
 
-/* ---------- TOTAL BANNER ---------- */
-.total-price-banner { background:var(--panel); padding:22px 32px 24px 36px; margin:18px 0 24px 0;
-  border-radius:0 90px 24px 24px; box-shadow:0 6px 18px rgba(0,0,0,.10); position:relative; overflow:hidden; }
-.total-price-banner::after { content:""; position:absolute; left:0; top:0; bottom:0; width:8px; background:var(--red); }
-.total-price-banner .tp-label { display:block; color:var(--red) !important; font-weight:800;
-  letter-spacing:.2em; text-transform:uppercase; font-size:.74rem; margin-bottom:6px; }
-.total-price-banner .tp-value { font-family:var(--display); color:var(--ink) !important; margin:0;
-  font-size:clamp(1.9rem,4vw,2.9rem); font-weight:800; letter-spacing:.01em; line-height:1.05; }
+    /* 10. TOTAL PRICE BANNER STYLING */
+    .total-price-banner {
+        background-color: #1a1a1a !important;
+        border-left: 8px solid #cc1111 !important;
+        padding: 18px 24px !important;
+        border-radius: 10px !important;
+        margin-top: 15px !important;
+        margin-bottom: 20px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    }
 
-/* ---------- BUTTONS ---------- */
-.stButton > button { border-radius:999px !important; padding:11px 20px !important; white-space:nowrap !important;
-  font-family:var(--body) !important; font-weight:800 !important; text-transform:uppercase !important;
-  letter-spacing:.06em !important; font-size:.74rem !important; transition:all .15s ease !important; }
-.stButton > button p { font-weight:800 !important; letter-spacing:.06em !important; white-space:nowrap !important; overflow:visible !important; text-overflow:clip !important; }
-.stButton > button[kind="secondary"], [data-testid="stBaseButton-secondary"] {
-  background:#fff !important; border:1.5px solid var(--ink) !important; color:var(--ink) !important;
-  box-shadow:none !important; }
-.stButton > button[kind="secondary"] p, [data-testid="stBaseButton-secondary"] p { color:var(--ink) !important; }
-.stButton > button[kind="secondary"]:hover, [data-testid="stBaseButton-secondary"]:hover {
-  background:var(--ink) !important; }
-.stButton > button[kind="secondary"]:hover p, [data-testid="stBaseButton-secondary"]:hover p { color:#fff !important; }
-.stButton > button[kind="primary"], [data-testid="stBaseButton-primary"] {
-  background:var(--red) !important; border:none !important; color:#fff !important;
-  box-shadow:0 6px 16px rgba(204,17,17,.35) !important; }
-.stButton > button[kind="primary"] p, [data-testid="stBaseButton-primary"] p { color:#fff !important; }
-.stButton > button[kind="primary"]:hover, [data-testid="stBaseButton-primary"]:hover {
-  background:var(--red-dk) !important; transform:translateY(-1px); }
+    /* 11. WARNER STEEL CRIMSON BUTTONS & CLEAN TABS */
+    .stButton > button {
+        background-color: #cc1111 !important;
+        color: #ffffff !important;
+        font-weight: 800 !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 12px 24px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        box-shadow: 0 3px 8px rgba(204, 17, 17, 0.3) !important;
+    }
+    .stButton > button:hover {
+        background-color: #aa0e0e !important;
+    }
 
-/* ---------- TOP BAR + HERO ACCENTS ---------- */
-.ws-topbar { display:flex; justify-content:space-between; align-items:center; gap:14px;
-  background:var(--ink); border-radius:999px; padding:9px 26px; margin-bottom:26px;
-  border-bottom:3px solid var(--red); }
-.ws-topbar .script { font-family:var(--script); color:#fff !important; font-size:1.05rem;
-  font-weight:400 !important; letter-spacing:.02em; }
-.ws-topbar .tag { color:#bdbdbd !important; font-size:.68rem; letter-spacing:.2em;
-  text-transform:uppercase; font-weight:600 !important; }
-@media (max-width:700px){ .ws-topbar .tag{ display:none; } }
-.ws-hero img { box-shadow:0 0 0 4px #fff, 0 0 0 7px var(--red), 0 14px 30px rgba(0,0,0,.28) !important;
-  margin-right:10px; }
-.ws-rule { height:4px; border-radius:4px; margin:2px 0 28px 0;
-  background:linear-gradient(90deg,var(--red) 0%,var(--ink) 55%,rgba(26,26,26,0) 100%); }
+    /* CLEAN & HIGH-CONTRAST TAB NAVIGATION FIX */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px !important;
+        border-bottom: 2px solid #cc1111 !important;
+        background-color: transparent !important;
+    }
+    
+    .stTabs [data-baseweb="tab"], button[data-baseweb="tab"] {
+        background-color: #ffffff !important;
+        border: 1.5px solid #cccccc !important;
+        border-bottom: none !important;
+        border-radius: 8px 8px 0 0 !important;
+        padding: 12px 24px !important;
+        font-weight: 800 !important;
+        color: #1a1a1a !important;
+        box-shadow: none !important;
+        transition: all 0.2s ease-in-out !important;
+    }
+    
+    .stTabs [data-baseweb="tab"] *, button[data-baseweb="tab"] * {
+        color: #1a1a1a !important;
+        font-weight: 800 !important;
+    }
 
-/* ---------- STEP INDICATOR ---------- */
-.ws-steps { display:flex; align-items:center; gap:14px; margin:0 0 24px 0; flex-wrap:wrap; }
-.ws-step { display:flex; align-items:center; gap:10px; font-weight:700; text-transform:uppercase;
-  letter-spacing:.1em; font-size:.74rem; color:var(--muted); }
-.ws-step b { width:36px; height:36px; border-radius:50%; background:#e2e2e2; color:#555;
-  display:grid; place-items:center; font-family:var(--display); font-size:.95rem; }
-.ws-step.on { color:var(--ink); }
-.ws-step.on b { background:var(--ink); color:#fff; box-shadow:0 0 0 3px #fff, 0 0 0 5px var(--red); }
-.ws-step.done { color:var(--ink); }
-.ws-step.done b { background:var(--red); color:#fff; }
-.ws-step-line { flex:0 0 72px; height:3px; border-radius:3px;
-  background:linear-gradient(90deg,var(--red),#cfcfcf); }
+    .stTabs [data-baseweb="tab"]:hover, button[data-baseweb="tab"]:hover {
+        background-color: #f9f9f9 !important;
+        border-color: #cc1111 !important;
+    }
 
-/* ---------- MATERIAL PANEL (arched, like the catalog) ---------- */
-.st-key-mat_panel { background:var(--panel); border-radius:0 100px 26px 26px;
-  padding:24px 32px 18px 32px; margin:4px 0 26px 0; }
-.panel-label { color:var(--red) !important; font-weight:800; text-transform:uppercase;
-  letter-spacing:.14em; font-size:.72rem; margin-bottom:10px; }
-@media (max-width:700px){ .st-key-mat_panel{ border-radius:0 40px 20px 20px; padding:18px; } }
+    .stTabs [aria-selected="true"], button[data-baseweb="tab"][aria-selected="true"] {
+        background-color: #1a1a1a !important;
+        border: 2px solid #cc1111 !important;
+        border-bottom: none !important;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.15) !important;
+    }
 
-/* ---------- POLISH ---------- */
-::selection { background:var(--red); color:#fff; }
-h3::after { content:""; display:block; width:54px; height:4px; background:var(--red);
-  border-radius:4px; margin-top:8px; }
-.info-card, .cost-card, [data-testid="stMetric"] { transition:transform .15s ease, box-shadow .15s ease; }
-.info-card:hover, .cost-card:hover, [data-testid="stMetric"]:hover { transform:translateY(-2px);
-  box-shadow:0 10px 22px rgba(0,0,0,.10) !important; }
-[data-testid="stImage"] img { border-radius:18px; background:#fff;
-  box-shadow:0 6px 20px rgba(0,0,0,.09); }
-[data-testid="stCheckbox"] { padding:2px 0; }
+    .stTabs [aria-selected="true"] *, button[data-baseweb="tab"][aria-selected="true"] * {
+        color: #ffffff !important;
+        font-weight: 900 !important;
+    }
 
-/* ---------- DOWNLOAD BUTTON ---------- */
-[data-testid="stDownloadButton"] button { border-radius:999px !important; padding:12px 28px !important;
-  white-space:nowrap !important; font-weight:800 !important; text-transform:uppercase !important;
-  letter-spacing:.07em !important; font-size:.78rem !important; background:var(--red) !important;
-  border:none !important; box-shadow:0 6px 16px rgba(204,17,17,.35) !important; transition:all .15s ease !important; }
-[data-testid="stDownloadButton"] button p, [data-testid="stDownloadButton"] button span { color:#fff !important; font-weight:800 !important; }
-[data-testid="stDownloadButton"] button:hover { background:var(--red-dk) !important; transform:translateY(-1px); }
-[data-testid="stDownloadButton"] { margin:-6px 0 22px 0; }
+    div[data-baseweb="tab-highlight"] {
+        background-color: transparent !important;
+    }
 
-/* ---------- FOOTER ---------- */
-.ws-footer { margin-top:52px; background:var(--ink); border-top:4px solid var(--red);
-  border-radius:90px 26px 0 0; padding:28px 40px 26px 40px; display:flex;
-  justify-content:space-between; align-items:center; flex-wrap:wrap; gap:18px; }
-.ws-footer * { color:#fff !important; }
-.ws-footer .brand { display:flex; align-items:center; gap:16px; }
-.ws-footer img { width:58px; height:58px; border-radius:50%; box-shadow:0 0 0 2px var(--red); }
-.ws-footer .script { font-family:var(--script); font-size:1.25rem; line-height:1.1; font-weight:400 !important; }
-.ws-footer .small { color:#a9a9a9 !important; font-size:.68rem; letter-spacing:.2em;
-  text-transform:uppercase; font-weight:600 !important; margin-top:4px; }
-.ws-footer .contact { font-size:.8rem; letter-spacing:.05em; font-weight:500 !important;
-  text-align:right; line-height:1.7; }
-.ws-footer .contact b { color:var(--red) !important; font-weight:800 !important; }
-</style>
+    hr {
+        border-top: 2px solid #cc1111 !important;
+    }
+    </style>
 """,
     unsafe_allow_html=True,
 )
@@ -332,38 +338,45 @@ except Exception as e:
 # ------------------------------------------------------
 # HEADER & LOGO (ROBUST FILE MATCH & INLINE SVG FALLBACK)
 # ------------------------------------------------------
-import base64
+header_col1, header_col2 = st.columns([1, 5])
+
 
 def get_logo_file():
   for f in glob.glob("*"):
-    if f.lower() in ("logo.png", "logo.jpg", "logo.jpeg", "warner_steel_1280x1280.png"):
+    if f.lower() in (
+        "logo.png",
+        "logo.jpg",
+        "logo.jpeg",
+        "warner_steel_1280x1280.png",
+    ):
       return f
   return None
 
 
-def logo_data_uri():
-  path = get_logo_file()
-  if not path:
-    return None
-  mime = "image/png" if path.lower().endswith("png") else "image/jpeg"
-  with open(path, "rb") as fh:
-    return f"data:{mime};base64," + base64.b64encode(fh.read()).decode()
+logo_path = get_logo_file()
 
+with header_col1:
+  if logo_path:
+    st.image(logo_path, width=140)
+  else:
+    st.markdown(
+        """
+        <div style="background-color: #1a1a1a; border-left: 5px solid #cc1111; padding: 12px; border-radius: 8px; text-align: center; width: 140px;">
+            <div style="color: #ffffff; font-weight: 900; font-size: 1.1rem; line-height: 1.1; letter-spacing: 1px;">WARNER</div>
+            <div style="color: #cc1111; font-weight: 900; font-size: 1.1rem; line-height: 1.1; letter-spacing: 1px;">STEEL</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-_logo_uri = logo_data_uri()
-_logo_html = f'<img src="{_logo_uri}" alt="Warner Steel logo">' if _logo_uri else ""
+with header_col2:
+  st.title("Warner Steel Sales, Inc.")
+  st.caption(
+      "2623 E. Raymond St · Indianapolis, IN 46203 · (317) 789-1733 ·"
+      " sales@warnersteel.com"
+  )
 
-st.markdown(
-    '<div class="ws-topbar"><div class="script">Since 1995</div>'
-    '<div class="tag">Indianapolis, Indiana &nbsp;·&nbsp; Laser Cutting Quotes</div></div>'
-    '<div class="ws-hero"><div>'
-    "<h1>WARNER<br>STEEL</h1>"
-    '<div class="sub">Laser Quoting</div>'
-    '<div class="addr">2623 E. Raymond St · Indianapolis, IN 46203 · (317) 789-1733 ·'
-    " sales@warnersteel.com</div>"
-    "</div>" + _logo_html + '</div><div class="ws-rule"></div>',
-    unsafe_allow_html=True,
-)
+st.divider()
 
 # ------------------------------------------------------
 # SESSION STATE INITIALIZATION & RESET HANDLER
@@ -394,8 +407,6 @@ def reset_quote_data():
   st.session_state.manual_len = None
   st.session_state.manual_wid = None
   st.session_state.manual_qty_val = None
-  st.session_state.source_file = None
-  st.session_state.active_layers = []
   st.session_state.step = 1
 
 
@@ -403,23 +414,10 @@ if "cut_length" not in st.session_state:
   reset_quote_data()
 
 # ------------------------------------------------------
-# STEP INDICATOR
-# ------------------------------------------------------
-_s = st.session_state.step
-st.markdown(
-    '<div class="ws-steps">'
-    f'<div class="ws-step {"done" if _s > 1 else "on"}"><b>{"✓" if _s > 1 else "1"}</b>Quote Details</div>'
-    '<div class="ws-step-line"></div>'
-    f'<div class="ws-step {"on" if _s == 2 else ""}"><b>2</b>Estimate</div>'
-    "</div>",
-    unsafe_allow_html=True,
-)
-
-# ------------------------------------------------------
 # STEP 1: QUOTE INPUTS & LIVE INTERACTIVE CAD VIEWER
 # ------------------------------------------------------
 if st.session_state.step == 1:
-  top_row1, top_row2, top_row3 = st.columns([2.2, 1.5, 1.2])
+  top_row1, top_row2, top_row3 = st.columns([3, 1.2, 1])
   with top_row1:
     st.markdown(
         '<div class="catalog-title"><span class="catalog-star">✦</span>STEP 1:'
@@ -436,50 +434,50 @@ if st.session_state.step == 1:
       st.rerun()
 
   # 1. MATERIAL & THICKNESS INPUTS
-  with st.container(key="mat_panel"):
-    st.markdown('<div class="panel-label">✦ Material &amp; Thickness</div>', unsafe_allow_html=True)
-    mats_list = ["Select Material..."] + list(vlookup_data["Material"].dropna().unique())
-  
-    sel_mat_idx = (
-        mats_list.index(st.session_state.selected_mat)
-        if st.session_state.get("selected_mat") in mats_list
-        else 0
-    )
-  
-    selected_mat = st.selectbox(
-        "Material Choice", mats_list, index=sel_mat_idx
-    )
+  mats_list = ["Select Material..."] + list(
+      vlookup_data["Material"].dropna().unique()
+  )
 
-    if selected_mat != "Select Material...":
-      st.session_state.selected_mat = selected_mat
-      available_thick_raw = (
-          vlookup_data[vlookup_data["Material"] == selected_mat]["Thickness"]
-          .dropna()
-          .unique()
-      )
-      thick_list = ["Select Thickness..."] + list(available_thick_raw)
-    else:
-      st.session_state.selected_mat = None
-      thick_list = ["Select Thickness..."]
+  sel_mat_idx = (
+      mats_list.index(st.session_state.selected_mat)
+      if st.session_state.get("selected_mat") in mats_list
+      else 0
+  )
 
-    sel_thick_idx = (
-        thick_list.index(st.session_state.selected_thick)
-        if st.session_state.get("selected_thick") in thick_list
-        else 0
-    )
+  selected_mat = st.selectbox("Material Choice", mats_list, index=sel_mat_idx)
 
-    selected_thick = st.selectbox(
-        "Thickness Choice", thick_list, index=sel_thick_idx
+  if selected_mat != "Select Material...":
+    st.session_state.selected_mat = selected_mat
+    available_thick_raw = (
+        vlookup_data[vlookup_data["Material"] == selected_mat]["Thickness"]
+        .dropna()
+        .unique()
     )
-  
-    if selected_thick != "Select Thickness...":
-      st.session_state.selected_thick = selected_thick
-    else:
-      st.session_state.selected_thick = None
+    thick_list = ["Select Thickness..."] + list(available_thick_raw)
+  else:
+    st.session_state.selected_mat = None
+    thick_list = ["Select Thickness..."]
+
+  sel_thick_idx = (
+      thick_list.index(st.session_state.selected_thick)
+      if st.session_state.get("selected_thick") in thick_list
+      else 0
+  )
+
+  selected_thick = st.selectbox(
+      "Thickness Choice", thick_list, index=sel_thick_idx
+  )
+
+  if selected_thick != "Select Thickness...":
+    st.session_state.selected_thick = selected_thick
+  else:
+    st.session_state.selected_thick = None
+
+  st.divider()
 
   # 2. DEFAULT TO MANUAL DATA ENTRY TAB FIRST
   tab_manual, tab_upload = st.tabs(
-      ["Manual Entry", "Upload File (DXF · SVG · TAP)"]
+      ["✏️ Manual Data Entry", "⚡ Upload File (.dxf / .svg / .tap)"]
   )
 
   # --- TAB 1: MANUAL DATA ENTRY ---
@@ -556,7 +554,7 @@ if st.session_state.step == 1:
     with col_m2:
       st.markdown(
           f"""
-          <div class="info-card tab-card">
+          <div class="info-card" style="margin-top: 25px;">
               <label>Calculated Unit & Footprint Summary</label>
               <span>Per Part Cut Length: {per_part_cut_len:.2f} in</span><br>
               <span>Per Part Pierces: {per_part_pierces}</span><br>
@@ -569,7 +567,8 @@ if st.session_state.step == 1:
   # --- TAB 2: FILE UPLOADER ---
   with tab_upload:
     uploaded_file = st.file_uploader(
-        "Drop DXF, SVG, or TAP/G-code file here to extract geometry and cut layers",
+        "Drop DXF, SVG, or TAP/G-code file here to extract geometry and cut"
+        " layers",
         type=["dxf", "svg", "tap", "nc", "cnc"],
     )
 
@@ -602,7 +601,7 @@ if st.session_state.step == 1:
     }[cad_units]
 
     if uploaded_file is not None:
-      file_bytes = uploaded_file.getvalue()
+      file_bytes = uploaded_file.read()
       data, error = parse_uploaded_file(
           uploaded_file.name, file_bytes, unit_scale
       )
@@ -613,7 +612,6 @@ if st.session_state.step == 1:
         st.session_state.parsed_layer_data = data
         st.session_state.qty = part_qty_upload
         st.session_state.input_mode = "upload"
-        st.session_state.source_file = uploaded_file.name
 
         if (
             "layer_toggles" not in st.session_state
@@ -648,7 +646,6 @@ if st.session_state.step == 1:
           if is_active:
             active_layers.append(l_name)
 
-        st.session_state.active_layers = list(active_layers)
         if "TAP Cut Toolpath" in all_layers:
           active_geom = {
               "cut_length": layer_info["cut_length"],
@@ -684,7 +681,7 @@ if st.session_state.step == 1:
 
         st.markdown(
             f"""
-            <div class="info-card tab-card" style="margin-top:12px;">
+            <div class="info-card" style="margin-top: 15px;">
                 <label>Active Geometry Summary (Incl. 0.5" Lead-In per Pierce)</label>
                 <span>Active Cut Length (Per Part): {active_geom['cut_length']} in</span><br>
                 <span>Active Pierces (Per Part): {active_geom['pierces']}</span><br>
@@ -699,7 +696,7 @@ if st.session_state.step == 1:
         fig_preview, ax_preview = plt.subplots(
             figsize=(6, 4.5), facecolor="#ffffff"
         )
-        ax_preview.set_facecolor("#ffffff")
+        ax_preview.set_facecolor("#fafafa")
 
         if active_geom["subpaths"]:
           for xs, ys in active_geom["subpaths"]:
@@ -725,7 +722,10 @@ if st.session_state.step == 1:
 
   if st.button("Calculate Quote & View Estimate →", type="primary"):
     if not st.session_state.selected_mat or not st.session_state.selected_thick:
-      st.error("⚠️ Please select both a Material Choice and a Thickness Choice to generate a quote.")
+      st.error(
+          "⚠️ Please select both a Material Choice and a Thickness Choice to"
+          " generate a quote."
+      )
     else:
       if (
           st.session_state.get("input_mode") == "upload"
@@ -755,8 +755,6 @@ if st.session_state.step == 1:
           st.session_state.part_w = st.session_state.length
         if st.session_state.part_h == 0.0:
           st.session_state.part_h = st.session_state.width
-        st.session_state.est_ref = datetime.now().strftime("WS-%y%m%d-%H%M")
-        st.session_state.est_date = datetime.now().strftime("%B %d, %Y").replace(" 0", " ")
         st.session_state.step = 2
         st.rerun()
 
@@ -764,7 +762,7 @@ if st.session_state.step == 1:
 # STEP 2: ESTIMATE SUMMARY & COST PIE CHART
 # ------------------------------------------------------
 elif st.session_state.step == 2:
-  nav_col1, nav_col2 = st.columns([3, 1.4])
+  nav_col1, nav_col2 = st.columns([4, 1])
   with nav_col1:
     if st.button("← Revise Quote Inputs"):
       st.session_state.step = 1
@@ -796,8 +794,13 @@ elif st.session_state.step == 2:
   spacing_gap = 0.25
 
   is_already_array = False
-  if st.session_state.get("input_mode") == "upload" and st.session_state.get("parsed_layer_data") is not None:
-    if "TAP Cut Toolpath" in st.session_state.parsed_layer_data.get("all_layers", []):
+  if (
+      st.session_state.get("input_mode") == "upload"
+      and st.session_state.get("parsed_layer_data") is not None
+  ):
+    if "TAP Cut Toolpath" in st.session_state.parsed_layer_data.get(
+        "all_layers", []
+    ):
       is_already_array = True
 
   if is_already_array:
@@ -808,7 +811,9 @@ elif st.session_state.step == 2:
     if qty == 1:
       cols, rows = 1, 1
     else:
-      cols = math.ceil(math.sqrt(qty * (part_h / part_w if part_w > 0 else 1.0)))
+      cols = math.ceil(
+          math.sqrt(qty * (part_h / part_w if part_w > 0 else 1.0))
+      )
       cols = max(1, min(qty, cols))
       rows = math.ceil(qty / cols)
 
@@ -841,7 +846,11 @@ elif st.session_state.step == 2:
       else:
         efficiency_multiplier = 1.0
 
-      total_area_sq_ft = base_part_area_sq_ft * (1 if is_already_array else qty) * efficiency_multiplier
+      total_area_sq_ft = (
+          base_part_area_sq_ft
+          * (1 if is_already_array else qty)
+          * efficiency_multiplier
+      )
 
       def clean_num(val):
         if pd.isna(val):
@@ -856,7 +865,8 @@ elif st.session_state.step == 2:
       cost_per_pierce = clean_num(row.get("Pierce_Cost", 0))
       gas_rate = clean_num(row.get("Gas_Cost_per_in", 0))
       setup_sqft_rate = clean_num(row.get("Setup_cost_per_sqft", 0))
-      laser_velocity = clean_num(row.get("Laser_Velocity", 0))
+      laser_velocity_ipm = clean_num(row.get("Laser_Velocity", 0))
+      sheet_est_cut_time = clean_num(row.get("est. Cut time (sec)", 0))
 
       total_cut_length = cut_length * (1 if is_already_array else qty)
       total_pierces = pierces * (1 if is_already_array else qty)
@@ -866,8 +876,11 @@ elif st.session_state.step == 2:
       gas_price = gas_rate * total_cut_length
       setup_price = setup_sqft_rate * total_area_sq_ft
 
-      if laser_velocity > 0:
-        est_cut_time_sec = (total_cut_length / laser_velocity) * 60.0
+      # --- ACCURATE CUT TIME FORMULA (IPM Feed Rate) ---
+      if laser_velocity_ipm > 0:
+        est_cut_time_sec = (total_cut_length / laser_velocity_ipm) * 60.0
+      elif sheet_est_cut_time > 0:
+        est_cut_time_sec = sheet_est_cut_time * (total_cut_length / 600.0)
       else:
         est_cut_time_sec = 0.0
 
@@ -937,77 +950,13 @@ elif st.session_state.step == 2:
       st.markdown(
           f"""
           <div class="total-price-banner">
-              <span class="tp-label">Total Price &nbsp;·&nbsp; {qty} pc{"s" if qty > 1 else ""}</span>
-              <div class="tp-value">${total_price:.2f}</div>
+              <h2 style="color: #ffffff !important; margin: 0; font-size: 2.3rem !important; font-weight: 900 !important;">
+                  Total Price ({qty} pc{"s" if qty > 1 else ""}): ${total_price:.2f}
+              </h2>
           </div>
       """,
           unsafe_allow_html=True,
       )
-
-      # --- DOWNLOAD ESTIMATE (PDF) ---
-      if PDF_AVAILABLE:
-        _is_upload = bool(subpaths_to_render)
-        _parsed = st.session_state.get("parsed_layer_data") or {}
-        _ref = st.session_state.get("est_ref") or datetime.now().strftime("WS-%y%m%d-%H%M")
-        _date = st.session_state.get("est_date") or datetime.now().strftime("%B %d, %Y")
-        try:
-          pdf_bytes = build_estimate_pdf(
-              {
-                  "ref": _ref,
-                  "date": _date,
-                  "material": str(selected_mat),
-                  "thickness": str(selected_thick),
-                  "gas": str(row.get("Gas", "N/A")),
-                  "qty": int(qty),
-                  "source": st.session_state.get("source_file") if _is_upload else "",
-                  "layers": st.session_state.get("active_layers", []) if _is_upload else [],
-                  "units_note": _parsed.get("units_note", "") if _is_upload else "",
-                  "length": length,
-                  "width": width,
-                  "part_w": part_w,
-                  "part_h": part_h,
-                  "cols": cols,
-                  "rows": rows,
-                  "array_w": array_width,
-                  "array_h": array_height,
-                  "spacing_gap": spacing_gap,
-                  "area_sqft": total_area_sq_ft,
-                  "efficiency": efficiency_multiplier,
-                  "cut_length_pp": cut_length,
-                  "pierces_pp": pierces,
-                  "total_cut_length": total_cut_length,
-                  "total_pierces": total_pierces,
-                  "cost_per_in": cost_per_in,
-                  "cost_per_pierce": cost_per_pierce,
-                  "gas_rate": gas_rate,
-                  "setup_rate": setup_sqft_rate,
-                  "cut_price": cut_price,
-                  "pierce_price": pierce_price,
-                  "gas_price": gas_price,
-                  "setup_price": setup_price,
-                  "total_price": total_price,
-                  "est_cut_time_sec": est_cut_time_sec,
-                  "subpaths": subpaths_to_render,
-                  "min_x": min_x,
-                  "min_y": min_y,
-                  "is_array": is_already_array,
-                  "lead_in": _parsed.get("lead_in", 0.5) if _is_upload else 0.0,
-                  "mode": "upload" if _is_upload else "manual",
-              },
-              logo_path=get_logo_file(),
-          )
-          st.download_button(
-              "Download Estimate (PDF)",
-              data=pdf_bytes,
-              file_name=f"Warner_Steel_Estimate_{_ref}.pdf",
-              mime="application/pdf",
-              type="primary",
-              key="dl_estimate_pdf",
-          )
-        except Exception as pdf_err:
-          st.warning(f"PDF could not be generated: {pdf_err}")
-      else:
-        st.info("Install the `reportlab` package to enable PDF estimate downloads.")
 
       # --- SIDE-BY-SIDE: COST PIE CHART & JOB DETAILS ---
       info_col1, info_col2 = st.columns([0.45, 0.55], gap="small")
@@ -1027,22 +976,22 @@ elif st.session_state.step == 2:
           fig_pie, ax_pie = plt.subplots(figsize=(3.8, 2.6), facecolor="none")
           ax_pie.set_facecolor("none")
 
-          colors = ["#cc1111", "#1a1a1a", "#8a6d4b", "#a8a8a8"]
+          colors = ["#cc1111", "#e65100", "#1976d2", "#388e3c"]
 
           wedges, texts, autotexts = ax_pie.pie(
               filtered_values,
               labels=filtered_labels,
-              autopct=lambda pct: f"{pct:.0f}%" if pct >= 5 else "",
-              pctdistance=0.79,
+              autopct="%1.0f%%",
               startangle=140,
               colors=colors[: len(filtered_values)],
               textprops=dict(color="#1a1a1a", fontsize=8, weight="bold"),
-              wedgeprops=dict(width=0.42, edgecolor="#ffffff", linewidth=2),
+              wedgeprops=dict(
+                  width=0.45, edgecolor=(0.0, 0.0, 0.0, 0.15), linewidth=1.2
+              ),
           )
 
-          for autotext, col in zip(autotexts, colors[: len(filtered_values)]):
+          for autotext in autotexts:
             autotext.set_fontsize(7.5)
-            autotext.set_color("#1a1a1a" if col == "#a8a8a8" else "#ffffff")
 
           ax_pie.axis("equal")
           st.pyplot(fig_pie, clear_figure=True)
@@ -1079,7 +1028,7 @@ elif st.session_state.step == 2:
     )
 
     fig, ax = plt.subplots(figsize=(7, 5), facecolor="#ffffff")
-    ax.set_facecolor("#ffffff")
+    ax.set_facecolor("#fafafa")
 
     cell_w = part_w + spacing_gap
     cell_h = part_h + spacing_gap
@@ -1114,27 +1063,12 @@ elif st.session_state.step == 2:
               part_w,
               part_h,
               fill=True,
-              facecolor="#fbeaea",
+              facecolor="#fdf0f0",
               edgecolor="#cc1111",
               linewidth=1.2,
           )
           ax.add_patch(rect_part)
 
-    ax.relim()
-    ax.autoscale_view()
-    ax.margins(0.04)
     ax.set_aspect("equal", adjustable="datalim")
     ax.axis("off")
     st.pyplot(fig, clear_figure=True)
-
-
-# ------------------------------------------------------
-# FOOTER
-# ------------------------------------------------------
-st.markdown(
-    '<div class="ws-footer"><div class="brand">'
-    + (f'<img src="{_logo_uri}" alt="">' if _logo_uri else "")
-    + '<div><div class="script">Warner Steel</div><div class="small">Since 1995 · Indianapolis, IN</div></div></div>'
-    '<div class="contact"><b>1-317-789-1733</b><br>www.warnersteel.com<br>sales@warnersteel.com</div></div>',
-    unsafe_allow_html=True,
-)
